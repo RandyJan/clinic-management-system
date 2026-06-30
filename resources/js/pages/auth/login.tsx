@@ -1,15 +1,16 @@
 import InputError from '@/components/input-error';
+import PrivacyNoticeDialog from '@/components/privacy-notice/privacy-notice-dialog';
 import { Turnstile } from '@/components/turnstile';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Spinner } from '@/components/ui/spinner';
-import PrivacyNoticeDialog from '@/components/privacy-notice/privacy-notice-dialog';
 import AuthLayout from '@/layouts/auth-layout';
 import { store } from '@/routes/login';
 import { Form, Head } from '@inertiajs/react';
+import { Info, LockKeyhole, UserRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface LoginProps {
@@ -38,50 +39,60 @@ export default function Login({ status, turnstileSiteKey }: LoginProps) {
             <Form
                 {...store.form()}
                 resetOnSuccess={['password']}
-                className="flex flex-col gap-4"
+                className="flex flex-col gap-5"
             >
                 {({ processing, errors }) => (
                     <>
-                        {/* Account Type Information */}
-                        <div className="rounded-md bg-blue-50 p-3 text-sm dark:bg-blue-950">
-                            <p className="font-semibold text-blue-900 dark:text-blue-100">
-                                Active Directory Account Required
-                            </p>
-                            <p className="mt-1 text-blue-800 dark:text-blue-200">
-                                Please use your Active Directory credentials to log in. If you don't have an Active Directory account or need assistance, 
-                                please contact your system administrator.
-                            </p>
+                        <div className="flex gap-3 rounded-lg border border-sky-200 bg-sky-50 p-3 text-sm text-sky-950 dark:border-sky-900/70 dark:bg-sky-950/40 dark:text-sky-100">
+                            <Info className="mt-0.5 size-4 shrink-0" />
+                            <div className="grid gap-1">
+                                <p className="font-semibold">
+                                    Active Directory Account Required
+                                </p>
+                                <p className="leading-5 text-sky-800 dark:text-sky-200">
+                                    Use your Active Directory credentials. For
+                                    access assistance, contact your system
+                                    administrator.
+                                </p>
+                            </div>
                         </div>
 
                         <div className="grid gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="samaccountname">Username</Label>
-                                <Input
-                                    id="samaccountname"
-                                    type="text"
-                                    name="samaccountname"
-                                    required
-                                    autoFocus
-                                    autoComplete="username"
-                                    placeholder="username"
-                                />
+                                <div className="relative">
+                                    <UserRound className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        id="samaccountname"
+                                        type="text"
+                                        name="samaccountname"
+                                        required
+                                        autoFocus
+                                        autoComplete="username"
+                                        placeholder="username"
+                                        className="h-11 pl-10"
+                                    />
+                                </div>
                                 <InputError message={errors.samaccountname} />
                             </div>
 
                             <div className="grid gap-2">
                                 <Label htmlFor="password">Password</Label>
-                                <PasswordInput
-                                    id="password"
-                                    name="password"
-                                    required
-                                    autoComplete="current-password"
-                                    placeholder="Password"
-                                />
+                                <div className="relative">
+                                    <LockKeyhole className="pointer-events-none absolute top-1/2 left-3 z-10 size-4 -translate-y-1/2 text-muted-foreground" />
+                                    <PasswordInput
+                                        id="password"
+                                        name="password"
+                                        required
+                                        autoComplete="current-password"
+                                        placeholder="Password"
+                                        className="h-11 pl-10"
+                                    />
+                                </div>
                                 <InputError message={errors.password} />
                             </div>
 
-                            {/* Centered Turnstile */}
-                            <div className="flex flex-col items-center gap-2">
+                            <div className="flex flex-col items-center gap-2 rounded-lg border bg-muted/30 p-3">
                                 <Turnstile
                                     siteKey={turnstileSiteKey}
                                     onVerify={setTurnstileToken}
@@ -96,47 +107,64 @@ export default function Login({ status, turnstileSiteKey }: LoginProps) {
                                 />
                             </div>
 
-                            <div className="flex flex-col gap-3">
-                                <div className="flex items-start space-x-3">
-                                    <Checkbox 
-                                        id="remember" 
+                            <div className="grid gap-3 rounded-lg border p-3">
+                                <div className="flex items-start gap-3">
+                                    <Checkbox
+                                        id="remember"
                                         name="remember"
                                         className="mt-1"
                                     />
-                                    <Label htmlFor="remember" className="font-normal">
+                                    <Label
+                                        htmlFor="remember"
+                                        className="font-normal"
+                                    >
                                         Remember me
                                     </Label>
                                 </div>
 
-                                {/* Privacy Notice Acceptance */}
-                                <div className="flex items-start space-x-3">
-                                    <Checkbox 
-                                        id="privacy-accepted" 
+                                <div className="flex items-start gap-3">
+                                    <Checkbox
+                                        id="privacy-accepted"
                                         checked={privacyAccepted}
-                                        onCheckedChange={(checked) => setPrivacyAccepted(checked === true)}
+                                        onCheckedChange={(checked) =>
+                                            setPrivacyAccepted(checked === true)
+                                        }
                                         className="mt-1"
                                         required
                                     />
                                     <div className="flex flex-col gap-1">
-                                        <Label htmlFor="privacy-accepted" className="font-normal">
+                                        <Label
+                                            htmlFor="privacy-accepted"
+                                            className="font-normal"
+                                        >
                                             I acknowledge and accept the{' '}
-                                            <PrivacyNoticeDialog 
-                                                trigger="Privacy Notice" 
-                                                triggerClassName="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline font-medium"
+                                            <PrivacyNoticeDialog
+                                                trigger="Privacy Notice"
+                                                triggerClassName="font-medium text-sky-700 underline underline-offset-4 hover:text-sky-800 dark:text-sky-300 dark:hover:text-sky-200"
                                                 open={privacyDialogOpen}
-                                                onOpenChange={setPrivacyDialogOpen}
-                                                onAccept={() => setPrivacyAccepted(true)}
+                                                onOpenChange={
+                                                    setPrivacyDialogOpen
+                                                }
+                                                onAccept={() =>
+                                                    setPrivacyAccepted(true)
+                                                }
                                             />
                                         </Label>
-                                        <InputError message={errors['privacy-accepted']} />
+                                        <InputError
+                                            message={errors['privacy-accepted']}
+                                        />
                                     </div>
                                 </div>
                             </div>
 
                             <Button
                                 type="submit"
-                                className="mt-2 w-full"
-                                disabled={processing || !turnstileToken || !privacyAccepted}
+                                className="h-11 w-full"
+                                disabled={
+                                    processing ||
+                                    !turnstileToken ||
+                                    !privacyAccepted
+                                }
                                 data-test="login-button"
                             >
                                 {processing && <Spinner />}

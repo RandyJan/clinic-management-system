@@ -1,6 +1,7 @@
 <?php
 
 use App\Events\QueueUpdated;
+use App\Models\Appointment;
 use App\Models\ClinicQueue;
 use App\Models\Doctor;
 use App\Models\Patient;
@@ -70,6 +71,80 @@ test('checked in patients appear in queue list', function () {
             ->component('queues/index')
             ->where('queues.data.0.id', $queue->id)
             ->where('active_queues.0.queue_number', 'Q-001'));
+});
+
+test('receptionist can check in an appointment and sync appointment status', function () {
+    Event::fake([QueueUpdated::class]);
+    $actor = userWithPermissions(['queues.check-in', 'queues.view']);
+    $appointment = Appointment::factory()->create([
+        'appointment_date' => '2026-06-24',
+        'status' => Appointment::STATUS_CONFIRMED,
+    ]);
+
+    $this->actingAs($actor)
+        ->post(route('queues.store'), [
+            'appointment_id' => $appointment->id,
+            'patient_id' => $appointment->patient_id,
+            'doctor_id' => $appointment->doctor_id,
+            'queue_date' => '2026-06-24',
+        ])
+        ->assertRedirect(route('queues.index', ['queue_date' => '2026-06-24']));
+
+    $queue = ClinicQueue::query()->firstOrFail();
+
+    expect($queue)
+        ->appointment_id->toBe($appointment->id)
+        ->patient_id->toBe($appointment->patient_id)
+        ->doctor_id->toBe($appointment->doctor_id)
+        ->status->toBe(ClinicQueue::STATUS_WAITING)
+        ->and($appointment->fresh()->status)->toBe(Appointment::STATUS_CHECKED_IN);
+
+    Event::assertDispatched(QueueUpdated::class);
+});
+
+test('queue status updates keep linked appointment in sync', function () {
+    $actor = userWithPermissions(['queues.call', 'queues.view']);
+    $appointment = Appointment::factory()->create([
+        'status' => Appointment::STATUS_CHECKED_IN,
+    ]);
+    $queue = ClinicQueue::factory()->create([
+        'appointment_id' => $appointment->id,
+        'patient_id' => $appointment->patient_id,
+        'doctor_id' => $appointment->doctor_id,
+        'status' => ClinicQueue::STATUS_WAITING,
+    ]);
+
+    $this->actingAs($actor)
+        ->patch(route('queues.start', $queue))
+        ->assertRedirect();
+
+    expect($appointment->fresh()->status)->toBe(Appointment::STATUS_IN_CONSULTATION);
+
+    $this->actingAs($actor)
+        ->patch(route('queues.complete', $queue))
+        ->assertRedirect();
+
+    expect($appointment->fresh()->status)->toBe(Appointment::STATUS_COMPLETED);
+});
+
+test('queue check in page includes todays eligible appointments', function () {
+    $actor = userWithPermissions(['queues.check-in']);
+    $appointment = Appointment::factory()->create([
+        'appointment_date' => now()->toDateString(),
+        'status' => Appointment::STATUS_CONFIRMED,
+    ]);
+    Appointment::factory()->create([
+        'appointment_date' => now()->addDay()->toDateString(),
+        'status' => Appointment::STATUS_CONFIRMED,
+    ]);
+
+    $this->actingAs($actor)
+        ->get(route('queues.create'))
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('queues/check-in')
+            ->where('appointments.0.id', $appointment->id)
+            ->where('appointments.0.appointment_number', $appointment->appointment_number));
 });
 
 test('doctor can call next patient from own queue', function () {

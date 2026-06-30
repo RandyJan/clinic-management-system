@@ -23,7 +23,7 @@ class StoreQueueCheckInRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'appointment_id' => ['nullable', 'integer', 'min:1'],
+            'appointment_id' => ['nullable', 'integer', Rule::exists('appointments', 'id')],
             'patient_id' => ['required', 'integer', Rule::exists('patients', 'id')],
             'doctor_id' => ['required', 'integer', Rule::exists('doctors', 'id')],
             'queue_date' => ['nullable', 'date'],

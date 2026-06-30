@@ -55,6 +55,11 @@ export function QueueTable({
                         <TableRow key={queue.id}>
                             <TableCell className="text-lg font-semibold">
                                 {queue.queue_number}
+                                {queue.appointment_number && (
+                                    <div className="text-sm font-normal text-muted-foreground">
+                                        {queue.appointment_number}
+                                    </div>
+                                )}
                             </TableCell>
                             <TableCell className="min-w-56">
                                 <div className="font-medium">
@@ -249,4 +254,3 @@ export function EmptyClock() {
         </div>
     );
 }
-

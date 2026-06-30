@@ -50,6 +50,14 @@ class ClinicQueue extends Model
     protected $table = 'queues';
 
     /**
+     * @return BelongsTo<Appointment, $this>
+     */
+    public function appointment(): BelongsTo
+    {
+        return $this->belongsTo(Appointment::class);
+    }
+
+    /**
      * @return BelongsTo<Patient, $this>
      */
     public function patient(): BelongsTo

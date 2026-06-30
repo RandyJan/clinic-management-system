@@ -1,12 +1,18 @@
 <?php
 
+use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AuditController;
+use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\DoctorController;
+use App\Http\Controllers\LaboratoryRequestController;
+use App\Http\Controllers\MedicalRecordController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PatientController;
+use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\QueueController;
 use App\Http\Controllers\RoleManagementController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\VitalSignController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -83,6 +89,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('patients/{patient}/medical-history', [PatientController::class, 'history'])
         ->middleware('can:patients.view')
         ->name('patients.history');
+    Route::get('patients/{patient}/consultations', [ConsultationController::class, 'patient'])
+        ->middleware('can:consultations.view')
+        ->name('patients.consultations.index');
+
+    Route::get('medical-records', [MedicalRecordController::class, 'index'])
+        ->name('medical-records.index');
+    Route::get('medical-records/{patient}', [MedicalRecordController::class, 'show'])
+        ->name('medical-records.show');
+    Route::get('medical-records/{patient}/print', [MedicalRecordController::class, 'print'])
+        ->name('medical-records.print');
+    Route::get('medical-records/{patient}/export', [MedicalRecordController::class, 'export'])
+        ->name('medical-records.export');
 
     Route::get('doctors', [DoctorController::class, 'index'])
         ->middleware('can:doctors.view')
@@ -106,6 +124,103 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('doctors.update');
     Route::get('doctors/{doctor}/schedule', [DoctorController::class, 'schedule'])
         ->name('doctors.schedule');
+
+    Route::get('appointments', [AppointmentController::class, 'index'])
+        ->middleware('can:appointments.own.view')
+        ->name('appointments.index');
+    Route::get('appointments/calendar', [AppointmentController::class, 'calendar'])
+        ->middleware('can:appointments.own.view')
+        ->name('appointments.calendar');
+    Route::get('appointments/create', [AppointmentController::class, 'create'])
+        ->middleware('can:appointments.create')
+        ->name('appointments.create');
+    Route::post('appointments', [AppointmentController::class, 'store'])
+        ->name('appointments.store');
+    Route::get('doctor-appointments', [AppointmentController::class, 'doctor'])
+        ->middleware('can:appointments.own.view')
+        ->name('appointments.doctor');
+    Route::get('appointments/{appointment}', [AppointmentController::class, 'show'])
+        ->middleware('can:appointments.own.view')
+        ->name('appointments.show');
+    Route::get('appointments/{appointment}/edit', [AppointmentController::class, 'edit'])
+        ->middleware('can:appointments.update')
+        ->name('appointments.edit');
+    Route::put('appointments/{appointment}', [AppointmentController::class, 'update'])
+        ->middleware('can:appointments.update')
+        ->name('appointments.update');
+    Route::patch('appointments/{appointment}/check-in', [AppointmentController::class, 'checkIn'])
+        ->middleware('can:appointments.check-in')
+        ->name('appointments.check-in');
+    Route::patch('appointments/{appointment}/start', [AppointmentController::class, 'start'])
+        ->middleware('can:appointments.manage-consultations')
+        ->name('appointments.start');
+    Route::patch('appointments/{appointment}/complete', [AppointmentController::class, 'complete'])
+        ->middleware('can:appointments.manage-consultations')
+        ->name('appointments.complete');
+    Route::patch('appointments/{appointment}/cancel', [AppointmentController::class, 'cancel'])
+        ->middleware('can:appointments.update')
+        ->name('appointments.cancel');
+    Route::get('appointments/{appointment}/vital-signs/create', [VitalSignController::class, 'create'])
+        ->middleware('can:vital-signs.create')
+        ->name('appointments.vital-signs.create');
+    Route::get('appointments/{appointment}/vital-signs', [VitalSignController::class, 'appointment'])
+        ->middleware('can:vital-signs.view')
+        ->name('appointments.vital-signs.show');
+    Route::post('vital-signs', [VitalSignController::class, 'store'])
+        ->middleware('can:vital-signs.create')
+        ->name('vital-signs.store');
+    Route::get('patients/{patient}/vital-signs', [VitalSignController::class, 'patient'])
+        ->middleware('can:vital-signs.view')
+        ->name('patients.vital-signs.index');
+
+    Route::get('consultations/{consultation}', [ConsultationController::class, 'show'])
+        ->middleware('can:consultations.view')
+        ->name('consultations.show');
+    Route::get('consultations/{consultation}/edit', [ConsultationController::class, 'edit'])
+        ->middleware('can:consultations.update')
+        ->name('consultations.edit');
+    Route::put('consultations/{consultation}', [ConsultationController::class, 'update'])
+        ->middleware('can:consultations.update')
+        ->name('consultations.update');
+    Route::patch('consultations/{consultation}/complete', [ConsultationController::class, 'complete'])
+        ->middleware('can:consultations.update')
+        ->name('consultations.complete');
+
+    Route::get('prescriptions', [PrescriptionController::class, 'index'])
+        ->name('prescriptions.index');
+    Route::get('prescriptions/pending', [PrescriptionController::class, 'pending'])
+        ->name('prescriptions.pending');
+    Route::get('consultations/{consultation}/prescriptions/create', [PrescriptionController::class, 'create'])
+        ->name('prescriptions.create');
+    Route::post('prescriptions', [PrescriptionController::class, 'store'])
+        ->name('prescriptions.store');
+    Route::get('prescriptions/{prescription}', [PrescriptionController::class, 'show'])
+        ->name('prescriptions.show');
+    Route::get('prescriptions/{prescription}/print', [PrescriptionController::class, 'print'])
+        ->name('prescriptions.print');
+    Route::patch('prescriptions/{prescription}/dispense', [PrescriptionController::class, 'dispense'])
+        ->name('prescriptions.dispense');
+    Route::get('patients/{patient}/prescriptions', [PrescriptionController::class, 'patient'])
+        ->name('patients.prescriptions.index');
+
+    Route::get('laboratory-requests', [LaboratoryRequestController::class, 'index'])
+        ->name('laboratory-requests.index');
+    Route::get('consultations/{consultation}/laboratory-requests/create', [LaboratoryRequestController::class, 'create'])
+        ->name('laboratory-requests.create');
+    Route::post('laboratory-requests', [LaboratoryRequestController::class, 'store'])
+        ->name('laboratory-requests.store');
+    Route::get('laboratory-requests/{laboratoryRequest}', [LaboratoryRequestController::class, 'show'])
+        ->name('laboratory-requests.show');
+    Route::patch('laboratory-requests/{laboratoryRequest}/status', [LaboratoryRequestController::class, 'updateStatus'])
+        ->name('laboratory-requests.update-status');
+    Route::get('laboratory-requests/{laboratoryRequest}/upload-result', [LaboratoryRequestController::class, 'upload'])
+        ->name('laboratory-requests.upload-result');
+    Route::post('laboratory-requests/{laboratoryRequest}/result', [LaboratoryRequestController::class, 'storeResult'])
+        ->name('laboratory-requests.store-result');
+    Route::get('laboratory-requests/{laboratoryRequest}/result', [LaboratoryRequestController::class, 'result'])
+        ->name('laboratory-requests.result');
+    Route::get('laboratory-requests/{laboratoryRequest}/attachment', [LaboratoryRequestController::class, 'attachment'])
+        ->name('laboratory-requests.attachment');
 
     Route::get('queues', [QueueController::class, 'index'])
         ->middleware('can:queues.view')

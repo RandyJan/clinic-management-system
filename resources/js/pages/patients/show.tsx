@@ -1,4 +1,6 @@
+import ConsultationController from '@/actions/App/Http/Controllers/ConsultationController';
 import PatientController from '@/actions/App/Http/Controllers/PatientController';
+import VitalSignController from '@/actions/App/Http/Controllers/VitalSignController';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -21,12 +23,21 @@ import AppLayout from '@/layouts/app-layout';
 import { index as patientsIndex } from '@/routes/patients';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { CalendarClock, FileClock, PencilLine, UserRound, XCircle } from 'lucide-react';
+import {
+    Activity,
+    CalendarClock,
+    FileClock,
+    FileText,
+    PencilLine,
+    UserRound,
+    XCircle,
+} from 'lucide-react';
 import { formatDate, StatusBadge } from './index';
 import { MedicalHistory, Patient } from './types';
 
 const historyLabels = {
     appointments: 'Appointment history',
+    vital_signs: 'Vital signs',
     consultations: 'Consultation history',
     prescriptions: 'Prescriptions',
     laboratory_requests: 'Laboratory requests',
@@ -63,6 +74,12 @@ export default function PatientShow({
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
+                        <Button variant="outline" asChild>
+                            <Link href={VitalSignController.patient(patient.id).url}>
+                                <Activity />
+                                Vital signs
+                            </Link>
+                        </Button>
                         <Button variant="outline" asChild>
                             <Link href={PatientController.history(patient.id).url}>
                                 <FileClock />
@@ -154,9 +171,37 @@ export function HistorySections({
                             {medicalHistory[key as keyof MedicalHistory].length} records
                         </p>
                     </div>
-                    <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
-                        No records yet.
-                    </div>
+                    {key === 'consultations' &&
+                    medicalHistory.consultations.length > 0 ? (
+                        <div className="grid gap-3">
+                            {medicalHistory.consultations
+                                .slice(0, 4)
+                                .map((consultation) => (
+                                    <Link
+                                        key={consultation.id}
+                                        href={
+                                            ConsultationController.show(
+                                                consultation.id,
+                                            ).url
+                                        }
+                                        className="grid gap-1 rounded-md border p-3 text-sm transition hover:bg-muted"
+                                    >
+                                        <span className="flex items-center gap-2 font-medium">
+                                            <FileText className="size-4" />
+                                            {consultation.consultation_number}
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                            {consultation.diagnosis ??
+                                                'No diagnosis recorded'}
+                                        </span>
+                                    </Link>
+                                ))}
+                        </div>
+                    ) : (
+                        <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+                            No records yet.
+                        </div>
+                    )}
                 </section>
             ))}
         </div>
@@ -239,4 +284,3 @@ function titleCase(value: string | null | undefined) {
 
     return value.charAt(0).toUpperCase() + value.slice(1);
 }
-

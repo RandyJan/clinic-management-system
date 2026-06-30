@@ -11,22 +11,28 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as appointmentsIndex } from '@/routes/appointments';
 import { index as auditsIndex } from '@/routes/audits';
 import { index as doctorsIndex } from '@/routes/doctors';
+import { index as laboratoryRequestsIndex } from '@/routes/laboratory-requests';
+import { index as medicalRecordsIndex } from '@/routes/medical-records';
 import { index as patientsIndex } from '@/routes/patients';
+import { index as prescriptionsIndex } from '@/routes/prescriptions';
 import { index as queuesIndex } from '@/routes/queues';
 import { index as rolesIndex } from '@/routes/roles';
 import { index as usersIndex } from '@/routes/users';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
-    BookOpen,
+    CalendarDays,
+    ClipboardList,
     FileText,
-    Folder,
+    FlaskConical,
     LayoutGrid,
     ListOrdered,
-    Stethoscope,
+    Pill,
     ShieldCheck,
+    Stethoscope,
     UserRound,
     UsersRound,
 } from 'lucide-react';
@@ -78,12 +84,54 @@ export function AppSidebar() {
                   },
               ]
             : []),
+        ...(can('medical-records.view') ||
+        can('medical-records.assigned.view') ||
+        can('medical-records.own.view')
+            ? [
+                  {
+                      title: 'Medical Records',
+                      href: medicalRecordsIndex(),
+                      icon: ClipboardList,
+                  },
+              ]
+            : []),
         ...(can('doctors.view')
             ? [
                   {
                       title: 'Doctors',
                       href: doctorsIndex(),
                       icon: Stethoscope,
+                  },
+              ]
+            : []),
+        ...(can('appointments.own.view')
+            ? [
+                  {
+                      title: 'Appointments',
+                      href: appointmentsIndex(),
+                      icon: CalendarDays,
+                  },
+              ]
+            : []),
+        ...(can('prescriptions.view') ||
+        can('prescriptions.doctor.view') ||
+        can('prescriptions.own.view')
+            ? [
+                  {
+                      title: 'Prescriptions',
+                      href: prescriptionsIndex(),
+                      icon: Pill,
+                  },
+              ]
+            : []),
+        ...(can('laboratory-requests.view') ||
+        can('laboratory-requests.doctor.view') ||
+        can('laboratory-requests.own.view')
+            ? [
+                  {
+                      title: 'Laboratory',
+                      href: laboratoryRequestsIndex(),
+                      icon: FlaskConical,
                   },
               ]
             : []),

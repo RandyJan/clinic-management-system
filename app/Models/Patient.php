@@ -6,6 +6,8 @@ use Database\Factories\PatientFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Patient extends Model
 {
@@ -16,6 +18,7 @@ class Patient extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'user_id',
         'patient_code',
         'first_name',
         'middle_name',
@@ -34,6 +37,50 @@ class Patient extends Model
         'existing_conditions',
         'status',
     ];
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return HasMany<Appointment, $this>
+     */
+    public function appointments(): HasMany
+    {
+        return $this->hasMany(Appointment::class);
+    }
+
+    /**
+     * @return HasMany<VitalSign, $this>
+     */
+    public function vitalSigns(): HasMany
+    {
+        return $this->hasMany(VitalSign::class);
+    }
+
+    /**
+     * @return HasMany<Consultation, $this>
+     */
+    public function consultations(): HasMany
+    {
+        return $this->hasMany(Consultation::class);
+    }
+
+    /** @return HasMany<Prescription, $this> */
+    public function prescriptions(): HasMany
+    {
+        return $this->hasMany(Prescription::class);
+    }
+
+    /** @return HasMany<LaboratoryRequest, $this> */
+    public function laboratoryRequests(): HasMany
+    {
+        return $this->hasMany(LaboratoryRequest::class);
+    }
 
     /**
      * @return Attribute<string, never>

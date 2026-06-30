@@ -16,7 +16,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft, LogIn } from 'lucide-react';
 import { FormEvent } from 'react';
-import { DoctorOption, PatientOption } from './types';
+import { AppointmentOption, DoctorOption, PatientOption } from './types';
 
 type CheckInForm = {
     appointment_id: string;
@@ -31,9 +31,11 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function QueueCheckIn({
+    appointments,
     patients,
     doctors,
 }: {
+    appointments: AppointmentOption[];
     patients: PatientOption[];
     doctors: DoctorOption[];
 }) {
@@ -43,6 +45,35 @@ export default function QueueCheckIn({
         doctor_id: '',
         queue_date: new Date().toISOString().slice(0, 10),
     });
+
+    function selectAppointment(value: string) {
+        if (value === 'manual') {
+            form.setData({
+                ...form.data,
+                appointment_id: '',
+                patient_id: '',
+                doctor_id: '',
+            });
+
+            return;
+        }
+
+        const appointment = appointments.find(
+            (item) => item.id.toString() === value,
+        );
+
+        if (!appointment) {
+            return;
+        }
+
+        form.setData({
+            ...form.data,
+            appointment_id: appointment.id.toString(),
+            patient_id: appointment.patient_id.toString(),
+            doctor_id: appointment.doctor_id.toString(),
+            queue_date: appointment.appointment_date,
+        });
+    }
 
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -76,6 +107,35 @@ export default function QueueCheckIn({
                     className="grid max-w-4xl gap-4 rounded-lg border border-sidebar-border/70 p-4 dark:border-sidebar-border"
                 >
                     <div className="grid gap-4 md:grid-cols-2">
+                        <div className="grid gap-2 md:col-span-2">
+                            <Label>Appointment</Label>
+                            <Select
+                                value={form.data.appointment_id || 'manual'}
+                                onValueChange={selectAppointment}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="manual">
+                                        Walk-in / no appointment
+                                    </SelectItem>
+                                    {appointments.map((appointment) => (
+                                        <SelectItem
+                                            key={appointment.id}
+                                            value={appointment.id.toString()}
+                                        >
+                                            {appointment.appointment_time} -{' '}
+                                            {appointment.appointment_number} -{' '}
+                                            {appointment.patient_name} with{' '}
+                                            {appointment.doctor_name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={form.errors.appointment_id} />
+                        </div>
+
                         <div className="grid gap-2">
                             <Label>
                                 Patient
@@ -135,25 +195,6 @@ export default function QueueCheckIn({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="appointment-id">
-                                Appointment ID
-                            </Label>
-                            <Input
-                                id="appointment-id"
-                                type="number"
-                                min="1"
-                                value={form.data.appointment_id}
-                                onChange={(event) =>
-                                    form.setData(
-                                        'appointment_id',
-                                        event.target.value,
-                                    )
-                                }
-                            />
-                            <InputError message={form.errors.appointment_id} />
-                        </div>
-
-                        <div className="grid gap-2">
                             <Label htmlFor="queue-date">Queue date</Label>
                             <Input
                                 id="queue-date"
@@ -181,4 +222,3 @@ export default function QueueCheckIn({
         </AppLayout>
     );
 }
-

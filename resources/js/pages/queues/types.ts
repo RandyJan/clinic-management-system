@@ -10,6 +10,7 @@ export type QueueItem = {
     id: number;
     queue_number: string;
     appointment_id: number | null;
+    appointment_number: string | null;
     patient_id: number;
     doctor_id: number;
     queue_date: string;
@@ -43,6 +44,17 @@ export type DoctorOption = {
     specialization: string;
 };
 
+export type AppointmentOption = {
+    id: number;
+    appointment_number: string;
+    patient_id: number;
+    doctor_id: number;
+    appointment_date: string;
+    appointment_time: string;
+    patient_name: string;
+    doctor_name: string;
+};
+
 export type PaginatedQueues = {
     data: QueueItem[];
     current_page: number;
@@ -56,4 +68,3 @@ export type PaginatedQueues = {
         active: boolean;
     }[];
 };
-

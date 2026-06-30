@@ -2,9 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\Patient;
+use App\Policies\LaboratoryRequestPolicy;
+use App\Policies\MedicalRecordPolicy;
+use App\Policies\PrescriptionPolicy;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,6 +27,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::policy(Patient::class, MedicalRecordPolicy::class);
+        Gate::define('createPrescription', [PrescriptionPolicy::class, 'createPrescription']);
+        Gate::define('createLabRequest', [LaboratoryRequestPolicy::class, 'createLabRequest']);
+
         Event::listen(Login::class, function (Login $event): void {
             activity('authentication')
                 ->causedBy($event->user)

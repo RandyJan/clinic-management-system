@@ -85,4 +85,12 @@ class User extends Authenticatable implements LdapAuthenticatable
     {
         return $this->hasOne(Doctor::class);
     }
+
+    /**
+     * @return HasOne<Patient, $this>
+     */
+    public function patient(): HasOne
+    {
+        return $this->hasOne(Patient::class);
+    }
 }

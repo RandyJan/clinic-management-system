@@ -25,7 +25,8 @@ export type Patient = {
 
 export type MedicalHistory = {
     appointments: Record<string, unknown>[];
-    consultations: Record<string, unknown>[];
+    vital_signs: Record<string, unknown>[];
+    consultations: ConsultationHistoryItem[];
     prescriptions: Record<string, unknown>[];
     laboratory_requests: Record<string, unknown>[];
     billing_history: Record<string, unknown>[];
@@ -48,4 +49,4 @@ export type PatientFormData = {
     allergies: string;
     existing_conditions: string;
 };
-
+import { ConsultationHistoryItem } from '../consultations/types';

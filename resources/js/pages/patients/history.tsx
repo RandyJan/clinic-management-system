@@ -1,10 +1,11 @@
 import PatientController from '@/actions/App/Http/Controllers/PatientController';
+import VitalSignController from '@/actions/App/Http/Controllers/VitalSignController';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { index as patientsIndex } from '@/routes/patients';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
+import { Activity, ArrowLeft } from 'lucide-react';
 import { HistorySections } from './show';
 import { MedicalHistory, Patient } from './types';
 
@@ -39,6 +40,12 @@ export default function PatientHistory({
                         </p>
                     </div>
                     <Button variant="outline" asChild>
+                        <Link href={VitalSignController.patient(patient.id).url}>
+                            <Activity />
+                            Vital signs
+                        </Link>
+                    </Button>
+                    <Button variant="outline" asChild>
                         <Link href={PatientController.show(patient.id).url}>
                             <ArrowLeft />
                             Patient profile
@@ -51,4 +58,3 @@ export default function PatientHistory({
         </AppLayout>
     );
 }
-

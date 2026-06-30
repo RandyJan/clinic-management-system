@@ -7,6 +7,7 @@ use App\Http\Requests\StoreQueueCheckInRequest;
 use App\Http\Requests\UpdateQueueStatusRequest;
 use App\Models\ClinicQueue;
 use App\Models\Doctor;
+use App\Services\ConsultationService;
 use App\Services\QueueService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -15,7 +16,10 @@ use Inertia\Response;
 
 class QueueController extends Controller
 {
-    public function __construct(private readonly QueueService $service) {}
+    public function __construct(
+        private readonly QueueService $service,
+        private readonly ConsultationService $consultationService,
+    ) {}
 
     public function index(QueueIndexRequest $request): Response
     {
@@ -33,6 +37,7 @@ class QueueController extends Controller
     public function create(): Response
     {
         return Inertia::render('queues/check-in', [
+            'appointments' => $this->service->checkInAppointments(),
             'patients' => $this->service->activePatients(),
             'doctors' => $this->service->activeDoctors(),
         ]);
@@ -86,8 +91,11 @@ class QueueController extends Controller
     {
         $this->authorizeQueueAction($queue);
         $queue = $this->service->startConsultation($queue, $request->user());
+        $consultation = $this->consultationService->startFromQueue($queue, $request->user());
 
-        return back()->with('success', "Started consultation for {$queue->queue_number}.");
+        return redirect()
+            ->route('consultations.edit', $consultation)
+            ->with('success', "Started consultation for {$queue->queue_number}.");
     }
 
     public function skip(UpdateQueueStatusRequest $request, ClinicQueue $queue): RedirectResponse
