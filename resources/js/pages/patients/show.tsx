@@ -1,5 +1,6 @@
 import BillingController from '@/actions/App/Http/Controllers/BillingController';
 import ConsultationController from '@/actions/App/Http/Controllers/ConsultationController';
+import MedicalCertificateController from '@/actions/App/Http/Controllers/MedicalCertificateController';
 import PatientController from '@/actions/App/Http/Controllers/PatientController';
 import VitalSignController from '@/actions/App/Http/Controllers/VitalSignController';
 import {
@@ -26,6 +27,7 @@ import {
     FileClock,
     FileText,
     PencilLine,
+    Printer,
     UserRound,
     XCircle,
 } from 'lucide-react';
@@ -39,6 +41,7 @@ const historyLabels = {
     prescriptions: 'Prescriptions',
     laboratory_requests: 'Laboratory requests',
     billing_history: 'Billing history',
+    medical_certificates: 'Medical certificates',
 };
 
 export default function PatientShow({
@@ -241,6 +244,59 @@ export function HistorySections({
                                             {money(billing.balance_due)} balance
                                         </span>
                                     </Link>
+                                ))}
+                        </div>
+                    ) : key === 'medical_certificates' &&
+                      medicalHistory.medical_certificates.length > 0 ? (
+                        <div className="grid gap-3">
+                            {medicalHistory.medical_certificates
+                                .slice(0, 4)
+                                .map((certificate) => (
+                                    <div
+                                        key={certificate.id}
+                                        className="grid gap-3 rounded-md border p-3 text-sm"
+                                    >
+                                        <div className="grid gap-1">
+                                            <span className="flex items-center gap-2 font-medium">
+                                                <FileText className="size-4" />
+                                                {certificate.certificate_number}
+                                            </span>
+                                            <span className="text-muted-foreground">
+                                                {certificate.diagnosis} - issued{' '}
+                                                {certificate.issued_date}
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                asChild
+                                            >
+                                                <Link
+                                                    href={
+                                                        MedicalCertificateController.show(
+                                                            certificate.id,
+                                                        ).url
+                                                    }
+                                                >
+                                                    <FileText />
+                                                    Details
+                                                </Link>
+                                            </Button>
+                                            <Button size="sm" asChild>
+                                                <Link
+                                                    href={
+                                                        MedicalCertificateController.print(
+                                                            certificate.id,
+                                                        ).url
+                                                    }
+                                                >
+                                                    <Printer />
+                                                    Print
+                                                </Link>
+                                            </Button>
+                                        </div>
+                                    </div>
                                 ))}
                         </div>
                     ) : (

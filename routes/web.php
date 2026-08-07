@@ -4,9 +4,12 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\ConsultationController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\LaboratoryRequestController;
+use App\Http\Controllers\MedicalCertificateController;
 use App\Http\Controllers\MedicalRecordController;
+use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PrescriptionController;
@@ -32,9 +35,9 @@ Route::get('queue-display/snapshot', [QueueController::class, 'snapshot'])
     ->name('queues.snapshot');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->middleware('can:dashboard.view')->name('dashboard');
+    Route::get('dashboard', DashboardController::class)
+        ->middleware('can:dashboard.view')
+        ->name('dashboard');
 
     // Debug pages
     Route::get('debug/notifications', function () {
@@ -188,6 +191,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('can:consultations.update')
         ->name('consultations.complete');
 
+    Route::get('consultations/{consultation}/medical-certificates/create', [MedicalCertificateController::class, 'create'])
+        ->name('medical-certificates.create');
+    Route::post('medical-certificates', [MedicalCertificateController::class, 'store'])
+        ->name('medical-certificates.store');
+    Route::get('medical-certificates/{medicalCertificate}', [MedicalCertificateController::class, 'show'])
+        ->name('medical-certificates.show');
+    Route::get('medical-certificates/{medicalCertificate}/print', [MedicalCertificateController::class, 'print'])
+        ->name('medical-certificates.print');
+    Route::get('patients/{patient}/medical-certificates', [MedicalCertificateController::class, 'patient'])
+        ->name('patients.medical-certificates.index');
+
     Route::get('prescriptions', [PrescriptionController::class, 'index'])
         ->name('prescriptions.index');
     Route::get('prescriptions/pending', [PrescriptionController::class, 'pending'])
@@ -223,6 +237,37 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('laboratory-requests.result');
     Route::get('laboratory-requests/{laboratoryRequest}/attachment', [LaboratoryRequestController::class, 'attachment'])
         ->name('laboratory-requests.attachment');
+
+    Route::get('medicines', [MedicineController::class, 'index'])
+        ->middleware('can:medicines.view')
+        ->name('medicines.index');
+    Route::get('medicines/create', [MedicineController::class, 'create'])
+        ->middleware('can:medicines.create')
+        ->name('medicines.create');
+    Route::post('medicines', [MedicineController::class, 'store'])
+        ->middleware('can:medicines.create')
+        ->name('medicines.store');
+    Route::get('medicines/low-stock', [MedicineController::class, 'lowStock'])
+        ->middleware('can:medicines.view')
+        ->name('medicines.low-stock');
+    Route::get('medicines/expiry', [MedicineController::class, 'expiry'])
+        ->middleware('can:medicines.view')
+        ->name('medicines.expiry');
+    Route::get('medicines/{medicine}/edit', [MedicineController::class, 'edit'])
+        ->middleware('can:medicines.update')
+        ->name('medicines.edit');
+    Route::put('medicines/{medicine}', [MedicineController::class, 'update'])
+        ->middleware('can:medicines.update')
+        ->name('medicines.update');
+    Route::get('medicines/{medicine}/stock', [MedicineController::class, 'stock'])
+        ->middleware('can:medicines.stock.adjust')
+        ->name('medicines.stock');
+    Route::patch('medicines/{medicine}/stock', [MedicineController::class, 'updateStock'])
+        ->middleware('can:medicines.stock.adjust')
+        ->name('medicines.stock.update');
+    Route::get('medicines/{medicine}/transactions', [MedicineController::class, 'transactions'])
+        ->middleware('can:medicines.view')
+        ->name('medicines.transactions');
 
     Route::get('services', [ServiceController::class, 'index'])
         ->middleware('can:services.view')

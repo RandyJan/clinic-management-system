@@ -17,6 +17,8 @@ use Illuminate\Validation\ValidationException;
 
 class PrescriptionService
 {
+    public function __construct(private readonly MedicineInventoryService $inventoryService) {}
+
     /**
      * @param  array{search?: string|null, status?: string|null, patient_id?: int|null}  $filters
      */
@@ -81,15 +83,15 @@ class PrescriptionService
                 ],
             ],
             'medicines' => Medicine::query()
-                ->where('is_active', true)
+                ->where('status', Medicine::STATUS_ACTIVE)
                 ->orderBy('name')
-                ->get(['id', 'sku', 'name', 'unit', 'stock_quantity'])
+                ->get(['id', 'sku', 'medicine_code', 'name', 'unit', 'current_stock'])
                 ->map(fn (Medicine $medicine): array => [
                     'id' => $medicine->id,
-                    'sku' => $medicine->sku,
+                    'sku' => $medicine->medicine_code ?? $medicine->sku,
                     'name' => $medicine->name,
                     'unit' => $medicine->unit,
-                    'stock_quantity' => $medicine->stock_quantity,
+                    'stock_quantity' => $medicine->current_stock,
                 ]),
         ];
     }
@@ -160,7 +162,7 @@ class PrescriptionService
             foreach ($quantities as $medicineId => $quantity) {
                 $medicine = $medicines->get($medicineId);
 
-                if ($medicine === null || $medicine->stock_quantity < $quantity) {
+                if ($medicine === null || $medicine->current_stock < $quantity) {
                     $name = $medicine?->name ?? 'Selected medicine';
                     throw ValidationException::withMessages([
                         'prescription' => "Insufficient stock for {$name}.",
@@ -169,7 +171,7 @@ class PrescriptionService
             }
 
             foreach ($quantities as $medicineId => $quantity) {
-                $medicines->get($medicineId)->decrement('stock_quantity', $quantity);
+                $this->inventoryService->dispense($medicines->get($medicineId), (int) $quantity, $lockedPrescription, $actor);
             }
 
             $lockedPrescription->forceFill([
@@ -198,7 +200,7 @@ class PrescriptionService
             'doctor:id,first_name,last_name,specialization,license_number',
             'dispenser:id,name',
             'items:id,prescription_id,medicine_id,medicine_name,dosage,frequency,duration,quantity,instructions',
-            'items.medicine:id,unit,stock_quantity',
+            'items.medicine:id,unit,current_stock',
         ]);
 
         return [
@@ -233,7 +235,7 @@ class PrescriptionService
                 'quantity' => $item->quantity,
                 'instructions' => $item->instructions,
                 'unit' => $item->medicine?->unit,
-                'stock_quantity' => $item->medicine?->stock_quantity,
+                'stock_quantity' => $item->medicine?->current_stock,
             ])->values(),
         ];
     }

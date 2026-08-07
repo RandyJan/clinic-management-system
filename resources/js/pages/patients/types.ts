@@ -1,3 +1,6 @@
+import { ConsultationHistoryItem } from '../consultations/types';
+import { MedicalCertificateHistoryItem } from '../medical-certificates/types';
+
 export type Patient = {
     id: number;
     patient_code: string;
@@ -30,6 +33,7 @@ export type MedicalHistory = {
     prescriptions: Record<string, unknown>[];
     laboratory_requests: Record<string, unknown>[];
     billing_history: BillingHistoryItem[];
+    medical_certificates: MedicalCertificateHistoryItem[];
 };
 
 export type BillingHistoryItem = {
@@ -59,4 +63,3 @@ export type PatientFormData = {
     allergies: string;
     existing_conditions: string;
 };
-import { ConsultationHistoryItem } from '../consultations/types';

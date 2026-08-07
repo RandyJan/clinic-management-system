@@ -94,6 +94,8 @@ class RbacSeeder extends Seeder
                     'appointments.manage-consultations',
                     'consultations.view',
                     'consultations.update',
+                    'medical-certificates.doctor.view',
+                    'medical-certificates.create',
                     'medical-records.assigned.view',
                     'prescriptions.doctor.view',
                     'prescriptions.create',
@@ -125,6 +127,7 @@ class RbacSeeder extends Seeder
             $permissions
                 ->whereIn('name', [
                     'dashboard.view',
+                    'medical-certificates.own.view',
                     'medical-records.own.view',
                     'prescriptions.own.view',
                     'laboratory-requests.own.view',
@@ -137,6 +140,10 @@ class RbacSeeder extends Seeder
                     'dashboard.view',
                     'prescriptions.view',
                     'prescriptions.dispense',
+                    'medicines.view',
+                    'medicines.create',
+                    'medicines.update',
+                    'medicines.stock.adjust',
                 ])
                 ->values()
         );

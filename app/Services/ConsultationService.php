@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\ClinicQueue;
 use App\Models\Consultation;
 use App\Models\LaboratoryRequest;
+use App\Models\MedicalCertificate;
 use App\Models\Patient;
 use App\Models\Prescription;
 use App\Models\User;
@@ -128,6 +129,7 @@ class ConsultationService
             'doctor',
             'patient',
             'prescriptions',
+            'medicalCertificates',
             'laboratoryRequests.labResult:id,lab_request_id',
         ]);
 
@@ -147,6 +149,7 @@ class ConsultationService
             'patient',
             'doctor',
             'prescriptions',
+            'medicalCertificates',
             'laboratoryRequests.labResult:id,lab_request_id',
         ]);
 
@@ -187,6 +190,11 @@ class ConsultationService
                 'id' => $prescription->id,
                 'medications' => $prescription->medications,
                 'instructions' => $prescription->instructions,
+            ])->values(),
+            'medical_certificates' => $consultation->medicalCertificates->map(fn (MedicalCertificate $certificate): array => [
+                'id' => $certificate->id,
+                'certificate_number' => $certificate->certificate_number,
+                'issued_date' => $certificate->issued_date?->toDateString(),
             ])->values(),
             'laboratory_requests' => $consultation->laboratoryRequests->map(fn (LaboratoryRequest $request): array => [
                 'id' => $request->id,

@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use App\Models\Billing;
+use App\Models\MedicalCertificate;
 use App\Models\Patient;
 use App\Policies\BillingPolicy;
 use App\Policies\LaboratoryRequestPolicy;
+use App\Policies\MedicalCertificatePolicy;
 use App\Policies\MedicalRecordPolicy;
 use App\Policies\PrescriptionPolicy;
 use Illuminate\Auth\Events\Login;
@@ -31,8 +33,11 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::policy(Patient::class, MedicalRecordPolicy::class);
         Gate::policy(Billing::class, BillingPolicy::class);
+        Gate::policy(MedicalCertificate::class, MedicalCertificatePolicy::class);
         Gate::define('createPrescription', [PrescriptionPolicy::class, 'createPrescription']);
         Gate::define('createLabRequest', [LaboratoryRequestPolicy::class, 'createLabRequest']);
+        Gate::define('createMedicalCertificate', [MedicalCertificatePolicy::class, 'createCertificate']);
+        Gate::define('viewMedicalCertificateHistory', [MedicalCertificatePolicy::class, 'viewPatientHistory']);
 
         Event::listen(Login::class, function (Login $event): void {
             activity('authentication')

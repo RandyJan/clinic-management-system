@@ -17,6 +17,7 @@ import { index as billingsIndex } from '@/routes/billings';
 import { index as doctorsIndex } from '@/routes/doctors';
 import { index as laboratoryRequestsIndex } from '@/routes/laboratory-requests';
 import { index as medicalRecordsIndex } from '@/routes/medical-records';
+import { index as medicinesIndex } from '@/routes/medicines';
 import { index as patientsIndex } from '@/routes/patients';
 import { index as prescriptionsIndex } from '@/routes/prescriptions';
 import { index as queuesIndex } from '@/routes/queues';
@@ -34,6 +35,7 @@ import {
     FlaskConical,
     LayoutGrid,
     ListOrdered,
+    PackagePlus,
     Pill,
     ShieldCheck,
     Stethoscope,
@@ -125,6 +127,15 @@ export function AppSidebar() {
                       title: 'Prescriptions',
                       href: prescriptionsIndex(),
                       icon: Pill,
+                  },
+              ]
+            : []),
+        ...(can('medicines.view')
+            ? [
+                  {
+                      title: 'Medicines',
+                      href: medicinesIndex(),
+                      icon: PackagePlus,
                   },
               ]
             : []),

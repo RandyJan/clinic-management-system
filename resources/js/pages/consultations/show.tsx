@@ -1,6 +1,7 @@
 import BillingController from '@/actions/App/Http/Controllers/BillingController';
 import ConsultationController from '@/actions/App/Http/Controllers/ConsultationController';
 import LaboratoryRequestController from '@/actions/App/Http/Controllers/LaboratoryRequestController';
+import MedicalCertificateController from '@/actions/App/Http/Controllers/MedicalCertificateController';
 import PatientController from '@/actions/App/Http/Controllers/PatientController';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
@@ -12,6 +13,7 @@ import {
     Beaker,
     CreditCard,
     FileClock,
+    FileText,
     FlaskConical,
     Pencil,
     Pill,
@@ -111,6 +113,21 @@ export default function ConsultationShow({
                                 </Link>
                             </Button>
                         )}
+                        {permissions.has('medical-certificates.create') &&
+                            consultation.status === 'Completed' && (
+                                <Button variant="outline" asChild>
+                                    <Link
+                                        href={
+                                            MedicalCertificateController.create(
+                                                consultation.id,
+                                            ).url
+                                        }
+                                    >
+                                        <FileText />
+                                        Medical certificate
+                                    </Link>
+                                </Button>
+                            )}
                         <Button variant="outline" asChild>
                             <Link
                                 href={
@@ -273,6 +290,61 @@ export default function ConsultationShow({
                                 </div>
                             </div>
                         ))}
+                    </RelatedSection>
+                    <RelatedSection
+                        title="Medical certificates"
+                        icon={<FileText className="size-4" />}
+                        empty="No medical certificates issued."
+                    >
+                        {consultation.medical_certificates.map(
+                            (certificate) => (
+                                <div
+                                    key={certificate.id}
+                                    className="flex flex-wrap items-center justify-between gap-2"
+                                >
+                                    <div className="grid gap-1">
+                                        <div className="font-medium">
+                                            {certificate.certificate_number}
+                                        </div>
+                                        <div className="text-sm text-muted-foreground">
+                                            Issued{' '}
+                                            {certificate.issued_date ??
+                                                'date not set'}
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            asChild
+                                        >
+                                            <Link
+                                                href={
+                                                    MedicalCertificateController.show(
+                                                        certificate.id,
+                                                    ).url
+                                                }
+                                            >
+                                                <FileText />
+                                                Details
+                                            </Link>
+                                        </Button>
+                                        <Button size="sm" asChild>
+                                            <Link
+                                                href={
+                                                    MedicalCertificateController.print(
+                                                        certificate.id,
+                                                    ).url
+                                                }
+                                            >
+                                                <FileClock />
+                                                Print
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                </div>
+                            ),
+                        )}
                     </RelatedSection>
                 </div>
             </div>

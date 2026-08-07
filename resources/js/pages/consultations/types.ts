@@ -35,6 +35,7 @@ export type ConsultationRecord = {
     };
     prescriptions: PrescriptionRecord[];
     laboratory_requests: LaboratoryRequestRecord[];
+    medical_certificates: MedicalCertificateRecord[];
 };
 
 export type ConsultationHistoryItem = {
@@ -69,6 +70,12 @@ export type LaboratoryRequestRecord = {
     instructions: string | null;
     status: string;
     has_result: boolean;
+};
+
+export type MedicalCertificateRecord = {
+    id: number;
+    certificate_number: string;
+    issued_date: string | null;
 };
 
 export type ConsultationFormData = {

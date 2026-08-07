@@ -91,6 +91,12 @@ class Consultation extends Model
         return $this->hasMany(Billing::class);
     }
 
+    /** @return HasMany<MedicalCertificate, $this> */
+    public function medicalCertificates(): HasMany
+    {
+        return $this->hasMany(MedicalCertificate::class);
+    }
+
     /**
      * @return array<string, string>
      */

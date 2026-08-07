@@ -16,6 +16,7 @@ class PatientService
         private readonly VitalSignService $vitalSignService,
         private readonly ConsultationService $consultationService,
         private readonly BillingService $billingService,
+        private readonly MedicalCertificateService $medicalCertificateService,
     ) {}
 
     /**
@@ -130,7 +131,7 @@ class PatientService
     }
 
     /**
-     * @return array{appointments: Collection<int, array<string, mixed>>, vital_signs: Collection<int, array<string, mixed>>, consultations: Collection<int, array<string, mixed>>, prescriptions: Collection<int, array<string, mixed>>, laboratory_requests: Collection<int, array<string, mixed>>, billing_history: Collection<int, array<string, mixed>>}
+     * @return array{appointments: Collection<int, array<string, mixed>>, vital_signs: Collection<int, array<string, mixed>>, consultations: Collection<int, array<string, mixed>>, medical_certificates: Collection<int, array<string, mixed>>, prescriptions: Collection<int, array<string, mixed>>, laboratory_requests: Collection<int, array<string, mixed>>, billing_history: Collection<int, array<string, mixed>>}
      */
     public function medicalHistory(Patient $patient): array
     {
@@ -138,6 +139,7 @@ class PatientService
             'appointments' => collect(),
             'vital_signs' => $this->vitalSignService->forPatient($patient),
             'consultations' => $this->consultationService->patientHistory($patient),
+            'medical_certificates' => $this->medicalCertificateService->historyForPatient($patient),
             'prescriptions' => collect(),
             'laboratory_requests' => collect(),
             'billing_history' => $this->billingService->historyForPatient($patient),

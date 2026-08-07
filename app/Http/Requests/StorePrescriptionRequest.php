@@ -29,7 +29,7 @@ class StorePrescriptionRequest extends FormRequest
             'notes' => ['nullable', 'string', 'max:4000'],
             'items' => ['required', 'array', 'min:1'],
             'items.*' => ['array:medicine_id,medicine_name,dosage,frequency,duration,quantity,instructions'],
-            'items.*.medicine_id' => ['nullable', 'integer', Rule::exists((new Medicine)->getTable(), 'id')->where('is_active', true)],
+            'items.*.medicine_id' => ['nullable', 'integer', Rule::exists((new Medicine)->getTable(), 'id')->where('status', Medicine::STATUS_ACTIVE)],
             'items.*.medicine_name' => ['nullable', 'required_without:items.*.medicine_id', 'string', 'max:255'],
             'items.*.dosage' => ['required', 'string', 'max:255'],
             'items.*.frequency' => ['required', 'string', 'max:255'],
