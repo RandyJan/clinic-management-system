@@ -1,34 +1,32 @@
 import AppointmentController from '@/actions/App/Http/Controllers/AppointmentController';
+import BillingController from '@/actions/App/Http/Controllers/BillingController';
 import ConsultationController from '@/actions/App/Http/Controllers/ConsultationController';
 import VitalSignController from '@/actions/App/Http/Controllers/VitalSignController';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import {
     edit as appointmentEdit,
-    index as appointmentsIndex,
     show as appointmentShow,
+    index as appointmentsIndex,
 } from '@/routes/appointments';
-import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
+import { type BreadcrumbItem, type SharedData } from '@/types';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
     CheckCircle2,
+    ClipboardPlus,
+    CreditCard,
+    FileClock,
+    FileText,
     LogIn,
     Pencil,
-    FileClock,
-    ClipboardPlus,
-    FileText,
     Stethoscope,
     XCircle,
 } from 'lucide-react';
-import {
-    AppointmentStatusBadge,
-    formatDate,
-    formatTime,
-} from './partials';
-import { AppointmentItem } from './types';
 import { VitalSignSummary } from '../vital-signs/partials';
 import { VitalSign } from '../vital-signs/types';
+import { AppointmentStatusBadge, formatDate, formatTime } from './partials';
+import { AppointmentItem } from './types';
 
 export default function AppointmentShow({
     appointment,
@@ -37,6 +35,9 @@ export default function AppointmentShow({
     appointment: AppointmentItem;
     latest_vital_signs: VitalSign | null;
 }) {
+    const permissions = new Set(
+        usePage<SharedData>().props.auth.permissions ?? [],
+    );
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Appointments', href: appointmentsIndex().url },
         {
@@ -80,6 +81,20 @@ export default function AppointmentShow({
                                 Edit
                             </Link>
                         </Button>
+                        {permissions.has('billing.create') && (
+                            <Button variant="outline" asChild>
+                                <Link
+                                    href={
+                                        BillingController.createFromAppointment(
+                                            appointment.id,
+                                        ).url
+                                    }
+                                >
+                                    <CreditCard />
+                                    Create bill
+                                </Link>
+                            </Button>
+                        )}
                         <Button variant="outline" asChild>
                             <Link
                                 href={
@@ -191,26 +206,53 @@ export default function AppointmentShow({
                 <div className="grid gap-4 lg:grid-cols-3">
                     <section className="grid gap-3 rounded-lg border border-sidebar-border/70 p-4 dark:border-sidebar-border">
                         <h2 className="font-semibold">Schedule</h2>
-                        <Detail label="Date" value={formatDate(appointment.appointment_date)} />
-                        <Detail label="Time" value={formatTime(appointment.appointment_time)} />
-                        <Detail label="Type" value={appointment.appointment_type} />
+                        <Detail
+                            label="Date"
+                            value={formatDate(appointment.appointment_date)}
+                        />
+                        <Detail
+                            label="Time"
+                            value={formatTime(appointment.appointment_time)}
+                        />
+                        <Detail
+                            label="Type"
+                            value={appointment.appointment_type}
+                        />
                     </section>
                     <section className="grid gap-3 rounded-lg border border-sidebar-border/70 p-4 dark:border-sidebar-border">
                         <h2 className="font-semibold">Patient</h2>
-                        <Detail label="Name" value={appointment.patient.full_name} />
-                        <Detail label="Code" value={appointment.patient.patient_code} />
+                        <Detail
+                            label="Name"
+                            value={appointment.patient.full_name}
+                        />
+                        <Detail
+                            label="Code"
+                            value={appointment.patient.patient_code}
+                        />
                     </section>
                     <section className="grid gap-3 rounded-lg border border-sidebar-border/70 p-4 dark:border-sidebar-border">
                         <h2 className="font-semibold">Doctor</h2>
-                        <Detail label="Name" value={appointment.doctor.full_name} />
-                        <Detail label="Specialization" value={appointment.doctor.specialization} />
+                        <Detail
+                            label="Name"
+                            value={appointment.doctor.full_name}
+                        />
+                        <Detail
+                            label="Specialization"
+                            value={appointment.doctor.specialization}
+                        />
                     </section>
                 </div>
 
                 <section className="grid gap-3 rounded-lg border border-sidebar-border/70 p-4 dark:border-sidebar-border">
                     <h2 className="font-semibold">Visit notes</h2>
-                    <Detail label="Reason for visit" value={appointment.reason_for_visit} />
-                    <Detail label="Remarks" value={appointment.remarks ?? 'None'} />
+                    <Detail
+                        label="Reason for visit"
+                        value={appointment.reason_for_visit}
+                    />
+                    <Detail
+                        label="Remarks"
+                        value={appointment.remarks ?? 'None'}
+                    />
                 </section>
 
                 <section className="grid gap-3 rounded-lg border border-sidebar-border/70 p-4 dark:border-sidebar-border">

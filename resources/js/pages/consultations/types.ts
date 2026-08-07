@@ -64,9 +64,11 @@ export type PrescriptionRecord = {
 
 export type LaboratoryRequestRecord = {
     id: number;
+    lab_request_number: string | null;
     tests: string;
     instructions: string | null;
     status: string;
+    has_result: boolean;
 };
 
 export type ConsultationFormData = {

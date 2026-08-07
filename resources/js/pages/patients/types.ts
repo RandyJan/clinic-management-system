@@ -29,7 +29,17 @@ export type MedicalHistory = {
     consultations: ConsultationHistoryItem[];
     prescriptions: Record<string, unknown>[];
     laboratory_requests: Record<string, unknown>[];
-    billing_history: Record<string, unknown>[];
+    billing_history: BillingHistoryItem[];
+};
+
+export type BillingHistoryItem = {
+    id: number;
+    invoice_number: string;
+    grand_total: number;
+    amount_paid: number;
+    balance_due: number;
+    payment_status: string;
+    created_at: string | null;
 };
 
 export type PatientFormData = {

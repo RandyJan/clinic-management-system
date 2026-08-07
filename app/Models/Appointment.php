@@ -112,6 +112,12 @@ class Appointment extends Model
         return $this->hasOne(Consultation::class);
     }
 
+    /** @return HasMany<Billing, $this> */
+    public function billings(): HasMany
+    {
+        return $this->hasMany(Billing::class);
+    }
+
     /**
      * @return array<string, string>
      */

@@ -82,6 +82,12 @@ class Patient extends Model
         return $this->hasMany(LaboratoryRequest::class);
     }
 
+    /** @return HasMany<Billing, $this> */
+    public function billings(): HasMany
+    {
+        return $this->hasMany(Billing::class);
+    }
+
     /**
      * @return Attribute<string, never>
      */

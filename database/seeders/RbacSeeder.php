@@ -55,6 +55,11 @@ class RbacSeeder extends Seeder
             'guard_name' => 'web',
         ]);
 
+        $cashierRole = Role::firstOrCreate([
+            'name' => 'Cashier',
+            'guard_name' => 'web',
+        ]);
+
         $administratorRole->syncPermissions($permissions);
         $guestRole->syncPermissions(
             $permissions->where('name', 'dashboard.view')->values()
@@ -132,6 +137,21 @@ class RbacSeeder extends Seeder
                     'dashboard.view',
                     'prescriptions.view',
                     'prescriptions.dispense',
+                ])
+                ->values()
+        );
+        $cashierRole->syncPermissions(
+            $permissions
+                ->whereIn('name', [
+                    'dashboard.view',
+                    'patients.view',
+                    'appointments.view',
+                    'appointments.own.view',
+                    'billing.view',
+                    'billing.create',
+                    'billing.update',
+                    'billing.cancel',
+                    'billing.payments.create',
                 ])
                 ->values()
         );

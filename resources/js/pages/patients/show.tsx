@@ -1,3 +1,4 @@
+import BillingController from '@/actions/App/Http/Controllers/BillingController';
 import ConsultationController from '@/actions/App/Http/Controllers/ConsultationController';
 import PatientController from '@/actions/App/Http/Controllers/PatientController';
 import VitalSignController from '@/actions/App/Http/Controllers/VitalSignController';
@@ -13,12 +14,7 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import {
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger,
-} from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { index as patientsIndex } from '@/routes/patients';
 import { type BreadcrumbItem } from '@/types';
@@ -26,6 +22,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import {
     Activity,
     CalendarClock,
+    CreditCard,
     FileClock,
     FileText,
     PencilLine,
@@ -53,7 +50,10 @@ export default function PatientShow({
 }) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Patients', href: patientsIndex().url },
-        { title: patient.full_name, href: PatientController.show(patient.id).url },
+        {
+            title: patient.full_name,
+            href: PatientController.show(patient.id).url,
+        },
     ];
 
     return (
@@ -70,18 +70,25 @@ export default function PatientShow({
                             <StatusBadge status={patient.status} />
                         </div>
                         <p className="text-sm text-muted-foreground">
-                            {patient.patient_code} · {patient.age ?? 'No age'} years old
+                            {patient.patient_code} · {patient.age ?? 'No age'}{' '}
+                            years old
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                         <Button variant="outline" asChild>
-                            <Link href={VitalSignController.patient(patient.id).url}>
+                            <Link
+                                href={
+                                    VitalSignController.patient(patient.id).url
+                                }
+                            >
                                 <Activity />
                                 Vital signs
                             </Link>
                         </Button>
                         <Button variant="outline" asChild>
-                            <Link href={PatientController.history(patient.id).url}>
+                            <Link
+                                href={PatientController.history(patient.id).url}
+                            >
                                 <FileClock />
                                 Medical history
                             </Link>
@@ -113,9 +120,18 @@ export default function PatientShow({
                             items={[
                                 ['Gender', titleCase(patient.gender)],
                                 ['Birthdate', patient.birthdate],
-                                ['Age', patient.age?.toString() ?? 'Not available'],
-                                ['Civil status', titleCase(patient.civil_status)],
-                                ['Blood type', patient.blood_type ?? 'Not recorded'],
+                                [
+                                    'Age',
+                                    patient.age?.toString() ?? 'Not available',
+                                ],
+                                [
+                                    'Civil status',
+                                    titleCase(patient.civil_status),
+                                ],
+                                [
+                                    'Blood type',
+                                    patient.blood_type ?? 'Not recorded',
+                                ],
                                 ['Created', formatDate(patient.created_at)],
                             ]}
                         />
@@ -136,10 +152,14 @@ export default function PatientShow({
                         <InfoSection
                             title="Medical notes"
                             items={[
-                                ['Allergies', patient.allergies ?? 'None recorded'],
+                                [
+                                    'Allergies',
+                                    patient.allergies ?? 'None recorded',
+                                ],
                                 [
                                     'Existing conditions',
-                                    patient.existing_conditions ?? 'None recorded',
+                                    patient.existing_conditions ??
+                                        'None recorded',
                                 ],
                             ]}
                         />
@@ -168,7 +188,8 @@ export function HistorySections({
                     <div>
                         <h2 className="font-semibold">{label}</h2>
                         <p className="text-sm text-muted-foreground">
-                            {medicalHistory[key as keyof MedicalHistory].length} records
+                            {medicalHistory[key as keyof MedicalHistory].length}{' '}
+                            records
                         </p>
                     </div>
                     {key === 'consultations' &&
@@ -197,6 +218,31 @@ export function HistorySections({
                                     </Link>
                                 ))}
                         </div>
+                    ) : key === 'billing_history' &&
+                      medicalHistory.billing_history.length > 0 ? (
+                        <div className="grid gap-3">
+                            {medicalHistory.billing_history
+                                .slice(0, 4)
+                                .map((billing) => (
+                                    <Link
+                                        key={billing.id}
+                                        href={
+                                            BillingController.show(billing.id)
+                                                .url
+                                        }
+                                        className="grid gap-1 rounded-md border p-3 text-sm transition hover:bg-muted"
+                                    >
+                                        <span className="flex items-center gap-2 font-medium">
+                                            <CreditCard className="size-4" />
+                                            {billing.invoice_number}
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                            {billing.payment_status} -{' '}
+                                            {money(billing.balance_due)} balance
+                                        </span>
+                                    </Link>
+                                ))}
+                        </div>
                     ) : (
                         <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
                             No records yet.
@@ -206,6 +252,13 @@ export function HistorySections({
             ))}
         </div>
     );
+}
+
+function money(value: number) {
+    return new Intl.NumberFormat(undefined, {
+        style: 'currency',
+        currency: 'PHP',
+    }).format(value);
 }
 
 function InfoSection({
@@ -243,9 +296,13 @@ function DeactivatePatientButton({ patient }: { patient: Patient }) {
     }
 
     function deactivate() {
-        router.patch(PatientController.deactivate(patient.id).url, {}, {
-            preserveScroll: true,
-        });
+        router.patch(
+            PatientController.deactivate(patient.id).url,
+            {},
+            {
+                preserveScroll: true,
+            },
+        );
     }
 
     return (
@@ -260,7 +317,8 @@ function DeactivatePatientButton({ patient }: { patient: Patient }) {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Deactivate patient</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This keeps the patient record available but marks it inactive.
+                        This keeps the patient record available but marks it
+                        inactive.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

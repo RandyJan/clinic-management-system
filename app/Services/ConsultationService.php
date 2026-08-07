@@ -128,7 +128,7 @@ class ConsultationService
             'doctor',
             'patient',
             'prescriptions',
-            'laboratoryRequests',
+            'laboratoryRequests.labResult:id,lab_request_id',
         ]);
 
         return [
@@ -147,7 +147,7 @@ class ConsultationService
             'patient',
             'doctor',
             'prescriptions',
-            'laboratoryRequests',
+            'laboratoryRequests.labResult:id,lab_request_id',
         ]);
 
         return [
@@ -190,9 +190,11 @@ class ConsultationService
             ])->values(),
             'laboratory_requests' => $consultation->laboratoryRequests->map(fn (LaboratoryRequest $request): array => [
                 'id' => $request->id,
+                'lab_request_number' => $request->lab_request_number,
                 'tests' => $request->tests,
                 'instructions' => $request->instructions,
                 'status' => $request->status,
+                'has_result' => $request->labResult !== null,
             ])->values(),
         ];
     }

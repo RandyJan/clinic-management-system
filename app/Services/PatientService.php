@@ -15,6 +15,7 @@ class PatientService
     public function __construct(
         private readonly VitalSignService $vitalSignService,
         private readonly ConsultationService $consultationService,
+        private readonly BillingService $billingService,
     ) {}
 
     /**
@@ -139,7 +140,7 @@ class PatientService
             'consultations' => $this->consultationService->patientHistory($patient),
             'prescriptions' => collect(),
             'laboratory_requests' => collect(),
-            'billing_history' => collect(),
+            'billing_history' => $this->billingService->historyForPatient($patient),
         ];
     }
 

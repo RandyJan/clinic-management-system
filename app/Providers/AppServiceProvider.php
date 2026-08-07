@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Billing;
 use App\Models\Patient;
+use App\Policies\BillingPolicy;
 use App\Policies\LaboratoryRequestPolicy;
 use App\Policies\MedicalRecordPolicy;
 use App\Policies\PrescriptionPolicy;
@@ -28,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(Patient::class, MedicalRecordPolicy::class);
+        Gate::policy(Billing::class, BillingPolicy::class);
         Gate::define('createPrescription', [PrescriptionPolicy::class, 'createPrescription']);
         Gate::define('createLabRequest', [LaboratoryRequestPolicy::class, 'createLabRequest']);
 

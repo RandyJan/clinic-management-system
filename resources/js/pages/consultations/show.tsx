@@ -1,11 +1,22 @@
+import BillingController from '@/actions/App/Http/Controllers/BillingController';
 import ConsultationController from '@/actions/App/Http/Controllers/ConsultationController';
+import LaboratoryRequestController from '@/actions/App/Http/Controllers/LaboratoryRequestController';
 import PatientController from '@/actions/App/Http/Controllers/PatientController';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { show as appointmentShow } from '@/routes/appointments';
-import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, FileClock, Pencil, Pill, TestTube2 } from 'lucide-react';
+import { type BreadcrumbItem, type SharedData } from '@/types';
+import { Head, Link, usePage } from '@inertiajs/react';
+import {
+    ArrowLeft,
+    Beaker,
+    CreditCard,
+    FileClock,
+    FlaskConical,
+    Pencil,
+    Pill,
+    TestTube2,
+} from 'lucide-react';
 import { ReactNode } from 'react';
 import { ConsultationRecord } from './types';
 
@@ -14,6 +25,9 @@ export default function ConsultationShow({
 }: {
     consultation: ConsultationRecord;
 }) {
+    const permissions = new Set(
+        usePage<SharedData>().props.auth.permissions ?? [],
+    );
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Appointments',
@@ -33,7 +47,12 @@ export default function ConsultationShow({
                 <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
                     <div className="grid gap-2">
                         <Button variant="outline" size="sm" asChild>
-                            <Link href={appointmentShow(consultation.appointment_id).url}>
+                            <Link
+                                href={
+                                    appointmentShow(consultation.appointment_id)
+                                        .url
+                                }
+                            >
                                 <ArrowLeft />
                                 Appointment
                             </Link>
@@ -63,8 +82,43 @@ export default function ConsultationShow({
                                 </Link>
                             </Button>
                         )}
+                        {permissions.has('laboratory-requests.create') &&
+                            consultation.status !== 'Cancelled' && (
+                                <Button variant="outline" asChild>
+                                    <Link
+                                        href={
+                                            LaboratoryRequestController.create(
+                                                consultation.id,
+                                            ).url
+                                        }
+                                    >
+                                        <Beaker />
+                                        Create lab request
+                                    </Link>
+                                </Button>
+                            )}
+                        {permissions.has('billing.create') && (
+                            <Button variant="outline" asChild>
+                                <Link
+                                    href={
+                                        BillingController.createFromConsultation(
+                                            consultation.id,
+                                        ).url
+                                    }
+                                >
+                                    <CreditCard />
+                                    Create bill
+                                </Link>
+                            </Button>
+                        )}
                         <Button variant="outline" asChild>
-                            <Link href={PatientController.history(consultation.patient_id).url}>
+                            <Link
+                                href={
+                                    PatientController.history(
+                                        consultation.patient_id,
+                                    ).url
+                                }
+                            >
                                 <FileClock />
                                 Medical record
                             </Link>
@@ -75,7 +129,10 @@ export default function ConsultationShow({
                 <div className="grid gap-4 lg:grid-cols-3">
                     <section className="grid gap-3 rounded-lg border border-sidebar-border/70 p-4 dark:border-sidebar-border">
                         <h2 className="font-semibold">Patient</h2>
-                        <Detail label="Name" value={consultation.patient.full_name} />
+                        <Detail
+                            label="Name"
+                            value={consultation.patient.full_name}
+                        />
                         <Detail
                             label="Code"
                             value={consultation.patient.patient_code}
@@ -83,7 +140,10 @@ export default function ConsultationShow({
                     </section>
                     <section className="grid gap-3 rounded-lg border border-sidebar-border/70 p-4 dark:border-sidebar-border">
                         <h2 className="font-semibold">Doctor</h2>
-                        <Detail label="Name" value={consultation.doctor.full_name} />
+                        <Detail
+                            label="Name"
+                            value={consultation.doctor.full_name}
+                        />
                         <Detail
                             label="Specialization"
                             value={consultation.doctor.specialization}
@@ -107,7 +167,9 @@ export default function ConsultationShow({
                     <div className="grid gap-4 md:grid-cols-2">
                         <Detail
                             label="Chief complaint"
-                            value={consultation.chief_complaint ?? 'Not recorded'}
+                            value={
+                                consultation.chief_complaint ?? 'Not recorded'
+                            }
                         />
                         <Detail
                             label="History of present illness"
@@ -122,7 +184,9 @@ export default function ConsultationShow({
                         />
                         <Detail
                             label="Treatment plan"
-                            value={consultation.treatment_plan ?? 'Not recorded'}
+                            value={
+                                consultation.treatment_plan ?? 'Not recorded'
+                            }
                         />
                         <Detail
                             label="Doctor notes"
@@ -160,12 +224,52 @@ export default function ConsultationShow({
                     >
                         {consultation.laboratory_requests.map((request) => (
                             <div key={request.id} className="grid gap-1">
-                                <div className="font-medium">
-                                    {request.tests}
+                                <div className="flex flex-wrap items-start justify-between gap-2">
+                                    <div>
+                                        <div className="font-medium">
+                                            {request.lab_request_number ??
+                                                'Laboratory request'}
+                                        </div>
+                                        <div className="text-sm text-muted-foreground">
+                                            {request.tests}
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            asChild
+                                        >
+                                            <Link
+                                                href={
+                                                    LaboratoryRequestController.show(
+                                                        request.id,
+                                                    ).url
+                                                }
+                                            >
+                                                <TestTube2 />
+                                                Details
+                                            </Link>
+                                        </Button>
+                                        {request.has_result && (
+                                            <Button size="sm" asChild>
+                                                <Link
+                                                    href={
+                                                        LaboratoryRequestController.result(
+                                                            request.id,
+                                                        ).url
+                                                    }
+                                                >
+                                                    <FlaskConical />
+                                                    Result
+                                                </Link>
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="text-sm text-muted-foreground">
-                                    {request.instructions ?? 'No instructions'} -{' '}
-                                    {request.status}
+                                    {request.instructions ?? 'No instructions'}{' '}
+                                    - {request.status}
                                 </div>
                             </div>
                         ))}

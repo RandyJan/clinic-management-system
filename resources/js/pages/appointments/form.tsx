@@ -89,7 +89,9 @@ export default function AppointmentFormPage({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={isEditing ? 'Edit Appointment' : 'Create Appointment'} />
+            <Head
+                title={isEditing ? 'Edit Appointment' : 'Create Appointment'}
+            />
 
             <div className="flex flex-1 flex-col gap-4 p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -126,7 +128,9 @@ export default function AppointmentFormPage({
                                 patient.id.toString(),
                                 `${patient.full_name} (${patient.patient_code})`,
                             ])}
-                            onChange={(value) => form.setData('patient_id', value)}
+                            onChange={(value) =>
+                                form.setData('patient_id', value)
+                            }
                         />
                         <SelectField
                             label="Doctor"
@@ -137,7 +141,9 @@ export default function AppointmentFormPage({
                                 doctor.id.toString(),
                                 `${doctor.full_name} - ${doctor.specialization}`,
                             ])}
-                            onChange={(value) => form.setData('doctor_id', value)}
+                            onChange={(value) =>
+                                form.setData('doctor_id', value)
+                            }
                         />
                         <TextField
                             label="Appointment date"
@@ -194,7 +200,7 @@ export default function AppointmentFormPage({
                             value={form.data.reason_for_visit}
                             error={form.errors.reason_for_visit}
                             required
-                            className="md:col-span-2"
+                            className="md:col-span-2 xl:col-span-4"
                             onChange={(value) =>
                                 form.setData('reason_for_visit', value)
                             }
@@ -203,7 +209,7 @@ export default function AppointmentFormPage({
                             label="Remarks"
                             value={form.data.remarks}
                             error={form.errors.remarks}
-                            className="md:col-span-2"
+                            className="md:col-span-2 xl:col-span-4"
                             onChange={(value) => form.setData('remarks', value)}
                         />
                     </Section>
@@ -220,17 +226,11 @@ export default function AppointmentFormPage({
     );
 }
 
-function Section({
-    title,
-    children,
-}: {
-    title: string;
-    children: ReactNode;
-}) {
+function Section({ title, children }: { title: string; children: ReactNode }) {
     return (
         <section className="grid gap-3">
             <h2 className="text-sm font-semibold">{title}</h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                 {children}
             </div>
         </section>
@@ -255,7 +255,7 @@ function TextField({
     const id = label.toLowerCase().replaceAll(' ', '-');
 
     return (
-        <div className="grid gap-2">
+        <div className="grid min-w-0 gap-2">
             <Label htmlFor={id}>
                 {label}
                 {required && <span className="text-destructive"> *</span>}
@@ -264,6 +264,7 @@ function TextField({
                 id={id}
                 type={type}
                 value={value}
+                className="min-w-0"
                 onChange={(event) => onChange(event.target.value)}
             />
             <InputError message={error} />
@@ -287,16 +288,19 @@ function SelectField({
     onChange: (value: string) => void;
 }) {
     return (
-        <div className="grid gap-2">
+        <div className="grid min-w-0 gap-2">
             <Label>
                 {label}
                 {required && <span className="text-destructive"> *</span>}
             </Label>
             <Select value={value} onValueChange={onChange}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full min-w-0 [&>span]:truncate">
                     <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent
+                    position="popper"
+                    className="max-w-[calc(100vw-2rem)]"
+                >
                     {options.map(([optionValue, text]) => (
                         <SelectItem key={optionValue} value={optionValue}>
                             {text}
@@ -327,7 +331,7 @@ function TextAreaField({
     const id = label.toLowerCase().replaceAll(' ', '-');
 
     return (
-        <div className={`grid gap-2 ${className ?? ''}`}>
+        <div className={`grid min-w-0 gap-2 ${className ?? ''}`}>
             <Label htmlFor={id}>
                 {label}
                 {required && <span className="text-destructive"> *</span>}

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AuditController;
+use App\Http\Controllers\BillingController;
 use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\LaboratoryRequestController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\QueueController;
 use App\Http\Controllers\RoleManagementController;
+use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\VitalSignController;
 use Illuminate\Support\Facades\Route;
@@ -221,6 +223,47 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('laboratory-requests.result');
     Route::get('laboratory-requests/{laboratoryRequest}/attachment', [LaboratoryRequestController::class, 'attachment'])
         ->name('laboratory-requests.attachment');
+
+    Route::get('services', [ServiceController::class, 'index'])
+        ->middleware('can:services.view')
+        ->name('services.index');
+    Route::get('services/create', [ServiceController::class, 'create'])
+        ->middleware('can:services.create')
+        ->name('services.create');
+    Route::post('services', [ServiceController::class, 'store'])
+        ->middleware('can:services.create')
+        ->name('services.store');
+    Route::get('services/{service}/edit', [ServiceController::class, 'edit'])
+        ->middleware('can:services.update')
+        ->name('services.edit');
+    Route::put('services/{service}', [ServiceController::class, 'update'])
+        ->middleware('can:services.update')
+        ->name('services.update');
+
+    Route::get('billings', [BillingController::class, 'index'])
+        ->name('billings.index');
+    Route::get('billings/create', [BillingController::class, 'create'])
+        ->name('billings.create');
+    Route::get('appointments/{appointment}/billings/create', [BillingController::class, 'createFromAppointment'])
+        ->name('billings.create-from-appointment');
+    Route::get('consultations/{consultation}/billings/create', [BillingController::class, 'createFromConsultation'])
+        ->name('billings.create-from-consultation');
+    Route::post('billings', [BillingController::class, 'store'])
+        ->name('billings.store');
+    Route::get('billings/{billing}', [BillingController::class, 'show'])
+        ->name('billings.show');
+    Route::get('billings/{billing}/edit', [BillingController::class, 'edit'])
+        ->name('billings.edit');
+    Route::put('billings/{billing}', [BillingController::class, 'update'])
+        ->name('billings.update');
+    Route::get('billings/{billing}/payment', [BillingController::class, 'payment'])
+        ->name('billings.payment');
+    Route::post('billings/{billing}/payments', [BillingController::class, 'storePayment'])
+        ->name('billings.payments.store');
+    Route::get('billings/{billing}/payments/{payment}/receipt', [BillingController::class, 'receipt'])
+        ->name('billings.receipt');
+    Route::patch('billings/{billing}/cancel', [BillingController::class, 'cancel'])
+        ->name('billings.cancel');
 
     Route::get('queues', [QueueController::class, 'index'])
         ->middleware('can:queues.view')

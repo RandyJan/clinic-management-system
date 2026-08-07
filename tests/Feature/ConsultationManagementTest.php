@@ -4,6 +4,7 @@ use App\Models\Appointment;
 use App\Models\Consultation;
 use App\Models\Doctor;
 use App\Models\LaboratoryRequest;
+use App\Models\LaboratoryResult;
 use App\Models\Patient;
 use App\Models\Prescription;
 use App\Models\User;
@@ -98,6 +99,33 @@ test('completed consultation appears in patient history', function () {
             ->component('consultations/history')
             ->where('consultations.0.id', $consultation->id)
             ->where('consultations.0.diagnosis', 'Hypertension follow-up'));
+});
+
+test('consultation details expose laboratory request result links', function () {
+    $actor = consultationUserWithPermissions(['consultations.view', 'laboratory-requests.create']);
+    $appointment = Appointment::factory()->create();
+    $consultation = Consultation::factory()->create([
+        'appointment_id' => $appointment->id,
+        'patient_id' => $appointment->patient_id,
+        'doctor_id' => $appointment->doctor_id,
+    ]);
+    $laboratoryRequest = LaboratoryRequest::factory()->completed()->create([
+        'consultation_id' => $consultation->id,
+        'patient_id' => $consultation->patient_id,
+        'doctor_id' => $consultation->doctor_id,
+        'requested_tests' => ['CBC'],
+        'tests' => 'CBC',
+    ]);
+    LaboratoryResult::factory()->create(['lab_request_id' => $laboratoryRequest->id]);
+
+    $this->actingAs($actor)
+        ->get(route('consultations.show', $consultation))
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('consultations/show')
+            ->where('consultation.laboratory_requests.0.id', $laboratoryRequest->id)
+            ->where('consultation.laboratory_requests.0.lab_request_number', $laboratoryRequest->lab_request_number)
+            ->where('consultation.laboratory_requests.0.has_result', true));
 });
 
 test('only assigned doctor or admin can update consultation', function () {

@@ -13,6 +13,7 @@ import {
 import { dashboard } from '@/routes';
 import { index as appointmentsIndex } from '@/routes/appointments';
 import { index as auditsIndex } from '@/routes/audits';
+import { index as billingsIndex } from '@/routes/billings';
 import { index as doctorsIndex } from '@/routes/doctors';
 import { index as laboratoryRequestsIndex } from '@/routes/laboratory-requests';
 import { index as medicalRecordsIndex } from '@/routes/medical-records';
@@ -20,12 +21,15 @@ import { index as patientsIndex } from '@/routes/patients';
 import { index as prescriptionsIndex } from '@/routes/prescriptions';
 import { index as queuesIndex } from '@/routes/queues';
 import { index as rolesIndex } from '@/routes/roles';
+import { index as servicesIndex } from '@/routes/services';
 import { index as usersIndex } from '@/routes/users';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
     CalendarDays,
     ClipboardList,
+    CreditCard,
+    HandCoins,
     FileText,
     FlaskConical,
     LayoutGrid,
@@ -132,6 +136,24 @@ export function AppSidebar() {
                       title: 'Laboratory',
                       href: laboratoryRequestsIndex(),
                       icon: FlaskConical,
+                  },
+              ]
+            : []),
+        ...(can('billing.view')
+            ? [
+                  {
+                      title: 'Billing',
+                      href: billingsIndex(),
+                      icon: CreditCard,
+                  },
+              ]
+            : []),
+        ...(can('services.view')
+            ? [
+                  {
+                      title: 'Services',
+                      href: servicesIndex(),
+                      icon: HandCoins,
                   },
               ]
             : []),
