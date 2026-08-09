@@ -107,6 +107,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                 <Link
                                                     key={item.title}
                                                     href={item.href}
+                                                    data-global-loader="module"
                                                     className="flex items-center space-x-2 font-medium"
                                                 >
                                                     {item.icon && (
@@ -149,6 +150,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                         <Link
                             href={dashboard()}
                             prefetch
+                            data-global-loader="module"
                             className="flex items-center space-x-2"
                         >
                             <AppLogo />
@@ -170,6 +172,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                     >
                                         <Link
                                             href={item.href}
+                                            data-global-loader="module"
                                             className={cn(
                                                 navigationMenuTriggerStyle(),
                                                 isSameUrl(

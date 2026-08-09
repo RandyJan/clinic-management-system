@@ -24,15 +24,15 @@ import { index as queuesIndex } from '@/routes/queues';
 import { index as rolesIndex } from '@/routes/roles';
 import { index as servicesIndex } from '@/routes/services';
 import { index as usersIndex } from '@/routes/users';
-import { type NavItem, type SharedData } from '@/types';
+import { type NavGroup, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
     CalendarDays,
     ClipboardList,
     CreditCard,
-    HandCoins,
     FileText,
     FlaskConical,
+    HandCoins,
     LayoutGrid,
     ListOrdered,
     PackagePlus,
@@ -62,140 +62,170 @@ export function AppSidebar() {
     const permissions = new Set(auth.permissions ?? []);
     const can = (permission: string) => permissions.has(permission);
 
-    const mainNavItems: NavItem[] = [
-        ...(can('dashboard.view')
-            ? [
-                  {
-                      title: 'Dashboard',
-                      href: dashboard(),
-                      icon: LayoutGrid,
-                  },
-              ]
-            : []),
-        ...(can('users.view')
-            ? [
-                  {
-                      title: 'User Management',
-                      href: usersIndex(),
-                      icon: UsersRound,
-                  },
-              ]
-            : []),
-        ...(can('patients.view')
-            ? [
-                  {
-                      title: 'Patients',
-                      href: patientsIndex(),
-                      icon: UserRound,
-                  },
-              ]
-            : []),
-        ...(can('medical-records.view') ||
-        can('medical-records.assigned.view') ||
-        can('medical-records.own.view')
-            ? [
-                  {
-                      title: 'Medical Records',
-                      href: medicalRecordsIndex(),
-                      icon: ClipboardList,
-                  },
-              ]
-            : []),
-        ...(can('doctors.view')
-            ? [
-                  {
-                      title: 'Doctors',
-                      href: doctorsIndex(),
-                      icon: Stethoscope,
-                  },
-              ]
-            : []),
-        ...(can('appointments.own.view')
-            ? [
-                  {
-                      title: 'Appointments',
-                      href: appointmentsIndex(),
-                      icon: CalendarDays,
-                  },
-              ]
-            : []),
-        ...(can('prescriptions.view') ||
-        can('prescriptions.doctor.view') ||
-        can('prescriptions.own.view')
-            ? [
-                  {
-                      title: 'Prescriptions',
-                      href: prescriptionsIndex(),
-                      icon: Pill,
-                  },
-              ]
-            : []),
-        ...(can('medicines.view')
-            ? [
-                  {
-                      title: 'Medicines',
-                      href: medicinesIndex(),
-                      icon: PackagePlus,
-                  },
-              ]
-            : []),
-        ...(can('laboratory-requests.view') ||
-        can('laboratory-requests.doctor.view') ||
-        can('laboratory-requests.own.view')
-            ? [
-                  {
-                      title: 'Laboratory',
-                      href: laboratoryRequestsIndex(),
-                      icon: FlaskConical,
-                  },
-              ]
-            : []),
-        ...(can('billing.view')
-            ? [
-                  {
-                      title: 'Billing',
-                      href: billingsIndex(),
-                      icon: CreditCard,
-                  },
-              ]
-            : []),
-        ...(can('services.view')
-            ? [
-                  {
-                      title: 'Services',
-                      href: servicesIndex(),
-                      icon: HandCoins,
-                  },
-              ]
-            : []),
-        ...(can('queues.view')
-            ? [
-                  {
-                      title: 'Queue',
-                      href: queuesIndex(),
-                      icon: ListOrdered,
-                  },
-              ]
-            : []),
-        ...(can('roles.view')
-            ? [
-                  {
-                      title: 'Role Management',
-                      href: rolesIndex(),
-                      icon: ShieldCheck,
-                  },
-              ]
-            : []),
-        ...(can('audits.view')
-            ? [
-                  {
-                      title: 'Audit Logs',
-                      href: auditsIndex(),
-                      icon: FileText,
-                  },
-              ]
-            : []),
-    ];
+    const navigationGroups: NavGroup[] = [
+        {
+            title: 'Overview',
+            items: [
+                ...(can('dashboard.view')
+                    ? [
+                          {
+                              title: 'Dashboard',
+                              href: dashboard(),
+                              icon: LayoutGrid,
+                          },
+                      ]
+                    : []),
+                ...(can('queues.view')
+                    ? [
+                          {
+                              title: 'Queue',
+                              href: queuesIndex(),
+                              icon: ListOrdered,
+                          },
+                      ]
+                    : []),
+            ],
+        },
+        {
+            title: 'Front Desk',
+            items: [
+                ...(can('patients.view')
+                    ? [
+                          {
+                              title: 'Patients',
+                              href: patientsIndex(),
+                              icon: UserRound,
+                          },
+                      ]
+                    : []),
+                ...(can('appointments.own.view')
+                    ? [
+                          {
+                              title: 'Appointments',
+                              href: appointmentsIndex(),
+                              icon: CalendarDays,
+                          },
+                      ]
+                    : []),
+            ],
+        },
+        {
+            title: 'Clinical',
+            items: [
+                ...(can('medical-records.view') ||
+                can('medical-records.assigned.view') ||
+                can('medical-records.own.view')
+                    ? [
+                          {
+                              title: 'Medical Records',
+                              href: medicalRecordsIndex(),
+                              icon: ClipboardList,
+                          },
+                      ]
+                    : []),
+                ...(can('doctors.view')
+                    ? [
+                          {
+                              title: 'Doctors',
+                              href: doctorsIndex(),
+                              icon: Stethoscope,
+                          },
+                      ]
+                    : []),
+                ...(can('prescriptions.view') ||
+                can('prescriptions.doctor.view') ||
+                can('prescriptions.own.view')
+                    ? [
+                          {
+                              title: 'Prescriptions',
+                              href: prescriptionsIndex(),
+                              icon: Pill,
+                          },
+                      ]
+                    : []),
+                ...(can('laboratory-requests.view') ||
+                can('laboratory-requests.doctor.view') ||
+                can('laboratory-requests.own.view')
+                    ? [
+                          {
+                              title: 'Laboratory',
+                              href: laboratoryRequestsIndex(),
+                              icon: FlaskConical,
+                          },
+                      ]
+                    : []),
+            ],
+        },
+        {
+            title: 'Billing',
+            items: [
+                ...(can('billing.view')
+                    ? [
+                          {
+                              title: 'Billing',
+                              href: billingsIndex(),
+                              icon: CreditCard,
+                          },
+                      ]
+                    : []),
+                ...(can('services.view')
+                    ? [
+                          {
+                              title: 'Services',
+                              href: servicesIndex(),
+                              icon: HandCoins,
+                          },
+                      ]
+                    : []),
+            ],
+        },
+        {
+            title: 'Inventory',
+            items: [
+                ...(can('medicines.view')
+                    ? [
+                          {
+                              title: 'Medicines',
+                              href: medicinesIndex(),
+                              icon: PackagePlus,
+                          },
+                      ]
+                    : []),
+            ],
+        },
+        {
+            title: 'Administration',
+            items: [
+                ...(can('users.view')
+                    ? [
+                          {
+                              title: 'User Management',
+                              href: usersIndex(),
+                              icon: UsersRound,
+                          },
+                      ]
+                    : []),
+                ...(can('roles.view')
+                    ? [
+                          {
+                              title: 'Role Management',
+                              href: rolesIndex(),
+                              icon: ShieldCheck,
+                          },
+                      ]
+                    : []),
+                ...(can('audits.view')
+                    ? [
+                          {
+                              title: 'Audit Logs',
+                              href: auditsIndex(),
+                              icon: FileText,
+                          },
+                      ]
+                    : []),
+            ],
+        },
+    ].filter((group) => group.items.length > 0);
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -203,7 +233,11 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                            <Link
+                                href={dashboard()}
+                                prefetch
+                                data-global-loader="module"
+                            >
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
@@ -212,7 +246,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain groups={navigationGroups} />
             </SidebarContent>
 
             <SidebarFooter>
