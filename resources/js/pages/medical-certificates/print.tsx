@@ -1,4 +1,9 @@
-import { Head } from '@inertiajs/react';
+import {
+    PrintClinicHeader,
+    PrintFooter,
+} from '@/components/print-clinic-header';
+import { type SharedData } from '@/types';
+import { Head, usePage } from '@inertiajs/react';
 import { MedicalCertificate } from './types';
 
 export default function MedicalCertificatePrint({
@@ -6,16 +11,18 @@ export default function MedicalCertificatePrint({
 }: {
     certificate: MedicalCertificate;
 }) {
+    const { clinic } = usePage<SharedData>().props;
+
     return (
         <>
             <Head title={`Print ${certificate.certificate_number}`} />
             <main className="mx-auto grid min-h-screen max-w-3xl gap-8 bg-white p-10 text-black print:min-h-0 print:p-0">
-                <header className="text-center">
-                    <h1 className="text-xl font-bold uppercase">
-                        Medical Certificate
-                    </h1>
-                    <p className="text-sm">{certificate.certificate_number}</p>
-                </header>
+                <PrintClinicHeader
+                    clinic={clinic}
+                    title="Medical Certificate"
+                    reference={certificate.certificate_number}
+                    date={certificate.issued_date}
+                />
 
                 <section className="grid gap-4 text-sm leading-7">
                     <p>
@@ -38,7 +45,9 @@ export default function MedicalCertificatePrint({
                             day(s).
                         </p>
                     )}
-                    {certificate.remarks && <p>Remarks: {certificate.remarks}</p>}
+                    {certificate.remarks && (
+                        <p>Remarks: {certificate.remarks}</p>
+                    )}
                     <p>
                         Issued on {certificate.issued_date} upon request for
                         whatever legal purpose it may serve.
@@ -54,6 +63,7 @@ export default function MedicalCertificatePrint({
                         <p>License No. {certificate.doctor.license_number}</p>
                     </div>
                 </footer>
+                <PrintFooter>{clinic.certificate_footer}</PrintFooter>
             </main>
         </>
     );

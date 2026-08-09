@@ -17,7 +17,10 @@ use Illuminate\Validation\ValidationException;
 
 class AppointmentService
 {
-    public function __construct(private readonly VitalSignService $vitalSignService) {}
+    public function __construct(
+        private readonly VitalSignService $vitalSignService,
+        private readonly ClinicSettingsService $clinicSettingsService,
+    ) {}
 
     /**
      * @param  array{date?: string|null, doctor_id?: int|string|null, patient_id?: int|string|null, status?: string|null}  $filters
@@ -259,6 +262,8 @@ class AppointmentService
             return;
         }
 
+        $this->ensureAppointmentTimeIsAvailable($data);
+
         $query = Appointment::query()
             ->where('doctor_id', $data['doctor_id'])
             ->whereDate('appointment_date', $data['appointment_date'])
@@ -274,6 +279,34 @@ class AppointmentService
             throw ValidationException::withMessages([
                 'appointment_time' => 'The selected doctor already has an appointment at this date and time.',
             ]);
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function ensureAppointmentTimeIsAvailable(array $data): void
+    {
+        $settings = $this->clinicSettingsService->current();
+        $appointmentTime = Carbon::parse($data['appointment_time']);
+
+        if ($settings->opening_time !== null && $settings->closing_time !== null) {
+            $openingTime = Carbon::parse($settings->opening_time);
+            $closingTime = Carbon::parse($settings->closing_time);
+
+            if ($appointmentTime->lt($openingTime) || $appointmentTime->gte($closingTime)) {
+                throw ValidationException::withMessages([
+                    'appointment_time' => 'The appointment time must be within clinic operating hours.',
+                ]);
+            }
+
+            $minutesFromOpening = (int) $openingTime->diffInMinutes($appointmentTime, false);
+
+            if ($minutesFromOpening % $settings->appointment_slot_duration !== 0) {
+                throw ValidationException::withMessages([
+                    'appointment_time' => 'The appointment time must follow the clinic slot duration.',
+                ]);
+            }
         }
     }
 

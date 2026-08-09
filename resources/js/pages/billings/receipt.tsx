@@ -1,6 +1,11 @@
 import BillingController from '@/actions/App/Http/Controllers/BillingController';
+import {
+    PrintClinicHeader,
+    PrintFooter,
+} from '@/components/print-clinic-header';
 import { Button } from '@/components/ui/button';
-import { Head, Link } from '@inertiajs/react';
+import { type SharedData } from '@/types';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { ArrowLeft, Printer } from 'lucide-react';
 import { formatDate, money } from './helpers';
 import { BillingDetail } from './types';
@@ -12,6 +17,7 @@ export default function BillingReceipt({
     billing: BillingDetail;
     payment_id: number;
 }) {
+    const { clinic } = usePage<SharedData>().props;
     const payment =
         billing.payments.find((payment) => payment.id === payment_id) ??
         billing.payments[0];
@@ -32,22 +38,12 @@ export default function BillingReceipt({
                         Print receipt
                     </Button>
                 </div>
-                <header className="flex items-start justify-between gap-6 border-b-2 border-black pb-5">
-                    <div>
-                        <p className="text-sm font-semibold tracking-[0.2em] uppercase">
-                            Clinic Management System
-                        </p>
-                        <h1 className="mt-1 text-3xl font-bold">
-                            Payment Receipt
-                        </h1>
-                    </div>
-                    <div className="text-right">
-                        <p className="font-bold">{billing.invoice_number}</p>
-                        <p className="text-sm">
-                            {formatDate(payment.payment_date)}
-                        </p>
-                    </div>
-                </header>
+                <PrintClinicHeader
+                    clinic={clinic}
+                    title="Payment Receipt"
+                    reference={billing.invoice_number}
+                    date={formatDate(payment.payment_date)}
+                />
                 <section className="grid grid-cols-2 gap-6 text-sm">
                     <div>
                         <p className="text-xs font-semibold uppercase">
@@ -114,6 +110,9 @@ export default function BillingReceipt({
                 <footer className="mt-auto pt-16 text-center text-sm">
                     <div className="mx-auto max-w-xs border-t border-black pt-2">
                         Cashier signature
+                    </div>
+                    <div className="mt-12">
+                        <PrintFooter>{clinic.receipt_footer}</PrintFooter>
                     </div>
                 </footer>
             </main>

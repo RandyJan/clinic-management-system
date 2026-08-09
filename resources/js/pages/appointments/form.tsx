@@ -13,8 +13,8 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { index as appointmentsIndex } from '@/routes/appointments';
-import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { type BreadcrumbItem, type SharedData } from '@/types';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { ArrowLeft, Save } from 'lucide-react';
 import { FormEvent, ReactNode } from 'react';
 import {
@@ -48,6 +48,12 @@ export default function AppointmentFormPage({
     statuses: AppointmentStatus[];
 }) {
     const isEditing = appointment !== undefined;
+    const { clinic } = usePage<SharedData>().props;
+    const appointmentSlotStep = clinic.appointment_slot_duration * 60;
+    const operatingHoursText =
+        clinic.opening_time && clinic.closing_time
+            ? `Slots every ${clinic.appointment_slot_duration} minutes, ${clinic.opening_time} to ${clinic.closing_time}.`
+            : `Slots every ${clinic.appointment_slot_duration} minutes.`;
     const form = useForm<AppointmentFormData>(
         appointment
             ? {
@@ -161,6 +167,10 @@ export default function AppointmentFormPage({
                             value={form.data.appointment_time}
                             error={form.errors.appointment_time}
                             required
+                            min={clinic.opening_time ?? undefined}
+                            max={clinic.closing_time ?? undefined}
+                            step={appointmentSlotStep}
+                            helperText={operatingHoursText}
                             onChange={(value) =>
                                 form.setData('appointment_time', value)
                             }
@@ -243,6 +253,10 @@ function TextField({
     error,
     required,
     type = 'text',
+    min,
+    max,
+    step,
+    helperText,
     onChange,
 }: {
     label: string;
@@ -250,6 +264,10 @@ function TextField({
     error?: string;
     required?: boolean;
     type?: string;
+    min?: string;
+    max?: string;
+    step?: number;
+    helperText?: string;
     onChange: (value: string) => void;
 }) {
     const id = label.toLowerCase().replaceAll(' ', '-');
@@ -264,9 +282,15 @@ function TextField({
                 id={id}
                 type={type}
                 value={value}
+                min={min}
+                max={max}
+                step={step}
                 className="min-w-0"
                 onChange={(event) => onChange(event.target.value)}
             />
+            {helperText && (
+                <p className="text-xs text-muted-foreground">{helperText}</p>
+            )}
             <InputError message={error} />
         </div>
     );

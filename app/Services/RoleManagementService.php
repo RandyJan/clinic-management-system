@@ -77,6 +77,8 @@ class RoleManagementService
         'queues.check-in',
         'queues.call',
         'audits.view',
+        'settings.view',
+        'settings.update',
     ];
 
     /**

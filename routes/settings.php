@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\ClinicSettingsController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
@@ -25,4 +26,32 @@ Route::middleware('auth')->group(function () {
 
     Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
+
+    Route::get('settings/clinic', [ClinicSettingsController::class, 'clinic'])
+        ->middleware('can:settings.view')
+        ->name('settings.clinic');
+    Route::patch('settings/clinic', [ClinicSettingsController::class, 'updateClinic'])
+        ->middleware('can:settings.update')
+        ->name('settings.clinic.update');
+
+    Route::get('settings/billing', [ClinicSettingsController::class, 'billing'])
+        ->middleware('can:settings.view')
+        ->name('settings.billing');
+    Route::patch('settings/billing', [ClinicSettingsController::class, 'updateBilling'])
+        ->middleware('can:settings.update')
+        ->name('settings.billing.update');
+
+    Route::get('settings/appointment', [ClinicSettingsController::class, 'appointment'])
+        ->middleware('can:settings.view')
+        ->name('settings.appointment');
+    Route::patch('settings/appointment', [ClinicSettingsController::class, 'updateAppointment'])
+        ->middleware('can:settings.update')
+        ->name('settings.appointment.update');
+
+    Route::get('settings/print-templates', [ClinicSettingsController::class, 'printTemplates'])
+        ->middleware('can:settings.view')
+        ->name('settings.print-templates');
+    Route::patch('settings/print-templates', [ClinicSettingsController::class, 'updatePrintTemplates'])
+        ->middleware('can:settings.update')
+        ->name('settings.print-templates.update');
 });

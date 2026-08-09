@@ -1,6 +1,11 @@
 import MedicalRecordController from '@/actions/App/Http/Controllers/MedicalRecordController';
+import {
+    PrintClinicHeader,
+    PrintFooter,
+} from '@/components/print-clinic-header';
 import { Button } from '@/components/ui/button';
-import { Head, Link } from '@inertiajs/react';
+import { type SharedData } from '@/types';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { ArrowLeft, Download, Printer } from 'lucide-react';
 import { MedicalRecordContent } from './record-content';
 import { MedicalRecord } from './types';
@@ -10,7 +15,15 @@ export default function MedicalRecordPrint({
 }: {
     record: MedicalRecord;
 }) {
+    const { clinic } = usePage<SharedData>().props;
     const patient = record.patient;
+    const clinicContact = [
+        clinic.clinic_address,
+        clinic.contact_number,
+        clinic.email,
+    ]
+        .filter(Boolean)
+        .join(' | ');
 
     return (
         <>
@@ -43,16 +56,15 @@ export default function MedicalRecordPrint({
                         </Button>
                     </div>
                 </div>
-                <header className="border-b pb-4">
-                    <p className="text-sm font-medium tracking-widest text-muted-foreground uppercase">
-                        Clinic Management System
-                    </p>
-                    <h1 className="text-3xl font-bold">Medical Record</h1>
-                    <p className="mt-1 text-sm">
-                        {patient.full_name} · {patient.patient_code}
-                    </p>
-                </header>
+
+                <PrintClinicHeader
+                    clinic={clinic}
+                    title="Medical Record"
+                    reference={`${patient.full_name} | ${patient.patient_code}`}
+                />
+
                 <MedicalRecordContent record={record} />
+
                 <footer className="border-t pt-4 text-xs text-muted-foreground">
                     Confidential medical information. Generated{' '}
                     {new Intl.DateTimeFormat(undefined, {
@@ -60,6 +72,9 @@ export default function MedicalRecordPrint({
                         timeStyle: 'short',
                     }).format(new Date())}
                     .
+                    <div className="mt-4 text-black">
+                        <PrintFooter>{clinicContact}</PrintFooter>
+                    </div>
                 </footer>
             </main>
         </>

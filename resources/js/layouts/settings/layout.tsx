@@ -1,3 +1,9 @@
+import {
+    appointment,
+    billing,
+    clinic,
+    printTemplates,
+} from '@/actions/App/Http/Controllers/Settings/ClinicSettingsController';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -5,9 +11,8 @@ import { cn, isSameUrl, resolveUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
 import { show } from '@/routes/two-factor';
-import { edit as editPassword } from '@/routes/user-password';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { type NavItem, type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
 import { type PropsWithChildren } from 'react';
 
 const sidebarNavItems: NavItem[] = [
@@ -40,18 +45,46 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     }
 
     const currentPath = window.location.pathname;
+    const permissions = new Set(
+        usePage<SharedData>().props.auth.permissions ?? [],
+    );
+    const settingsNavItems: NavItem[] = permissions.has('settings.view')
+        ? [
+              {
+                  title: 'Clinic',
+                  href: clinic(),
+                  icon: null,
+              },
+              {
+                  title: 'Billing',
+                  href: billing(),
+                  icon: null,
+              },
+              {
+                  title: 'Appointment',
+                  href: appointment(),
+                  icon: null,
+              },
+              {
+                  title: 'Print Templates',
+                  href: printTemplates(),
+                  icon: null,
+              },
+          ]
+        : [];
+    const navItems = [...settingsNavItems, ...sidebarNavItems];
 
     return (
         <div className="px-4 py-6">
             <Heading
                 title="Settings"
-                description="Manage your profile and account settings"
+                description="Manage clinic, billing, appointment, print, and account settings"
             />
 
             <div className="flex flex-col lg:flex-row lg:space-x-12">
                 <aside className="w-full max-w-xl lg:w-48">
                     <nav className="flex flex-col space-y-1 space-x-0">
-                        {sidebarNavItems.map((item, index) => (
+                        {navItems.map((item, index) => (
                             <Button
                                 key={`${resolveUrl(item.href)}-${index}`}
                                 size="sm"

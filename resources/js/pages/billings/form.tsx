@@ -12,8 +12,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/react';
+import { type BreadcrumbItem, type SharedData } from '@/types';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { Plus, Save, Trash2 } from 'lucide-react';
 import { FormEvent } from 'react';
 import { money } from './helpers';
@@ -60,7 +60,15 @@ export default function BillingForm({
     services: ServiceOption[];
     item_types: string[];
 }) {
+    const { clinic } = usePage<SharedData>().props;
     const isEditing = billing !== undefined;
+    const defaultConsultationFee = clinic.consultation_default_fee.toString();
+    const initialTax = source.consultation_number
+        ? (
+              (Number(defaultConsultationFee) * Number(clinic.tax_rate)) /
+              100
+          ).toFixed(2)
+        : '0';
     const form = useForm<BillingFormData>(
         billing
             ? {
@@ -82,10 +90,13 @@ export default function BillingForm({
                   appointment_id: source.appointment_id?.toString() ?? '',
                   consultation_id: source.consultation_id?.toString() ?? '',
                   discount: '0',
-                  tax: '0',
+                  tax: initialTax,
                   items: [
                       {
                           ...emptyItem,
+                          unit_price: source.consultation_number
+                              ? defaultConsultationFee
+                              : emptyItem.unit_price,
                           description: source.consultation_number
                               ? `Consultation fee - ${source.consultation_number}`
                               : '',
@@ -280,9 +291,7 @@ export default function BillingForm({
                                     <div className="grid min-w-0 gap-2">
                                         <Label>Service</Label>
                                         <Select
-                                            value={
-                                                item.service_id || 'manual'
-                                            }
+                                            value={item.service_id || 'manual'}
                                             onValueChange={(value) =>
                                                 selectService(index, value)
                                             }

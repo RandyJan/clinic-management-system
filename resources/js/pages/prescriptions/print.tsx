@@ -1,6 +1,11 @@
 import PrescriptionController from '@/actions/App/Http/Controllers/PrescriptionController';
+import {
+    PrintClinicHeader,
+    PrintFooter,
+} from '@/components/print-clinic-header';
 import { Button } from '@/components/ui/button';
-import { Head, Link } from '@inertiajs/react';
+import { type SharedData } from '@/types';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { ArrowLeft, Printer } from 'lucide-react';
 import { PrescriptionDetail } from './types';
 
@@ -9,6 +14,11 @@ export default function PrescriptionPrint({
 }: {
     prescription: PrescriptionDetail;
 }) {
+    const { clinic } = usePage<SharedData>().props;
+    const issuedDate = new Intl.DateTimeFormat(undefined, {
+        dateStyle: 'long',
+    }).format(new Date(prescription.created_at ?? 0));
+
     return (
         <>
             <Head
@@ -31,26 +41,12 @@ export default function PrescriptionPrint({
                         Print prescription
                     </Button>
                 </div>
-                <header className="flex items-start justify-between gap-6 border-b-2 border-black pb-5">
-                    <div>
-                        <p className="text-sm font-semibold tracking-[0.2em] uppercase">
-                            Clinic Management System
-                        </p>
-                        <h1 className="mt-1 text-3xl font-bold">
-                            Prescription
-                        </h1>
-                    </div>
-                    <div className="text-right">
-                        <p className="font-bold">
-                            {prescription.prescription_number}
-                        </p>
-                        <p className="text-sm">
-                            {new Intl.DateTimeFormat(undefined, {
-                                dateStyle: 'long',
-                            }).format(new Date(prescription.created_at ?? 0))}
-                        </p>
-                    </div>
-                </header>
+                <PrintClinicHeader
+                    clinic={clinic}
+                    title="Prescription"
+                    reference={prescription.prescription_number}
+                    date={issuedDate}
+                />
                 <section className="grid grid-cols-2 gap-6 text-sm">
                     <div>
                         <p className="text-xs font-semibold uppercase">
@@ -138,6 +134,17 @@ export default function PrescriptionPrint({
                             </p>
                             <p>{prescription.doctor.license_number}</p>
                         </div>
+                    </div>
+                    <div className="col-span-2">
+                        <PrintFooter>
+                            {[
+                                clinic.clinic_address,
+                                clinic.contact_number,
+                                clinic.email,
+                            ]
+                                .filter(Boolean)
+                                .join(' | ')}
+                        </PrintFooter>
                     </div>
                 </footer>
             </main>

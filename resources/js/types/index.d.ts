@@ -27,6 +27,7 @@ export interface NavItem {
 export interface SharedData {
     name: string;
     quote: { message: string; author: string };
+    clinic: ClinicSettings;
     auth: Auth;
     flash?: {
         success?: string | null;
@@ -34,6 +35,21 @@ export interface SharedData {
     };
     sidebarOpen: boolean;
     [key: string]: unknown;
+}
+
+export interface ClinicSettings {
+    clinic_name: string;
+    clinic_address: string | null;
+    contact_number: string | null;
+    email: string | null;
+    logo_url: string | null;
+    consultation_default_fee: number;
+    tax_rate: number;
+    appointment_slot_duration: number;
+    opening_time: string | null;
+    closing_time: string | null;
+    receipt_footer: string | null;
+    certificate_footer: string | null;
 }
 
 export interface User {

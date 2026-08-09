@@ -1,3 +1,4 @@
+import { clinic as clinicSettings } from '@/actions/App/Http/Controllers/Settings/ClinicSettingsController';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -37,6 +38,7 @@ import {
     ListOrdered,
     PackagePlus,
     Pill,
+    Settings,
     ShieldCheck,
     Stethoscope,
     UserRound,
@@ -211,6 +213,15 @@ export function AppSidebar() {
                               title: 'Role Management',
                               href: rolesIndex(),
                               icon: ShieldCheck,
+                          },
+                      ]
+                    : []),
+                ...(can('settings.view')
+                    ? [
+                          {
+                              title: 'Settings',
+                              href: clinicSettings(),
+                              icon: Settings,
                           },
                       ]
                     : []),
