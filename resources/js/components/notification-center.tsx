@@ -20,7 +20,7 @@ export function NotificationCenter({ userId }: NotificationCenterProps) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <button className="relative inline-flex items-center justify-center rounded-md p-2 hover:bg-accent">
+                <button className="relative inline-flex items-center justify-center rounded-xl p-2 transition-colors hover:bg-accent/70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
                     <Bell className="size-5" />
                     {unreadCount > 0 && (
                         <Badge
@@ -32,22 +32,26 @@ export function NotificationCenter({ userId }: NotificationCenterProps) {
                     )}
                 </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-96 p-0">
-                <div className="border-b border-border px-4 py-3">
-                    <div className="border-b border-border px-4 py-3 flex items-center justify-between">
-                        <h3 className="font-semibold">Notifications</h3>
-
-                        <button
-                            onClick={() =>
-                                router.post('/notifications/read-all', {}, {
+            <DropdownMenuContent
+                align="end"
+                className="w-96 overflow-hidden p-0"
+            >
+                <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+                    <h3 className="font-semibold">Notifications</h3>
+                    <button
+                        onClick={() =>
+                            router.post(
+                                '/notifications/read-all',
+                                {},
+                                {
                                     preserveScroll: true,
-                                })
-                            }
-                            className="text-xs text-primary hover:underline"
-                        >
-                            Mark all as read
-                        </button>
-                    </div>
+                                },
+                            )
+                        }
+                        className="rounded-md px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+                    >
+                        Mark all as read
+                    </button>
                 </div>
                 {notifications.length === 0 ? (
                     <div className="flex h-32 items-center justify-center text-center text-sm text-muted-foreground">
@@ -55,7 +59,7 @@ export function NotificationCenter({ userId }: NotificationCenterProps) {
                     </div>
                 ) : (
                     <ScrollArea className="h-96">
-                        <div className="divide-y divide-border">
+                        <div className="divide-y divide-border/60">
                             {notifications.map((notification) => (
                                 <NotificationItem
                                     key={notification.id}
@@ -65,7 +69,7 @@ export function NotificationCenter({ userId }: NotificationCenterProps) {
                         </div>
                     </ScrollArea>
                 )}
-                <div className="border-t p-2 text-center">
+                <div className="border-t border-border/60 p-2 text-center">
                     <Link
                         href="/notifications"
                         className="text-sm text-primary hover:underline"
@@ -84,16 +88,20 @@ function NotificationItem({ notification }: { notification: Notification }) {
             <div
                 onClick={() => {
                     if (!notification.read_at) {
-                        router.post(`/notifications/${notification.id}/read`, {}, {
-                            preserveScroll: true,
-                        });
+                        router.post(
+                            `/notifications/${notification.id}/read`,
+                            {},
+                            {
+                                preserveScroll: true,
+                            },
+                        );
                     }
                 }}
                 className={cn(
                     'cursor-pointer border-l-4 px-4 py-3 transition-colors',
                     notification.read_at
-                        ? 'border-l-transparent bg-background'
-                        : 'border-l-blue-500 bg-blue-50 dark:bg-blue-950/30',
+                        ? 'border-l-transparent bg-background/45'
+                        : 'border-l-blue-500 bg-blue-50/80 dark:bg-blue-950/35',
                 )}
             >
                 <div className="space-y-1">

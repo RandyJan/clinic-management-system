@@ -50,7 +50,7 @@ const rightNavItems: NavItem[] = [
 ];
 
 const activeItemStyles =
-    'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100';
+    'bg-primary/10 text-primary shadow-[inset_0_0_0_1px_rgb(99_102_241/0.18)] dark:text-primary';
 
 interface AppHeaderProps {
     breadcrumbs?: BreadcrumbItem[];
@@ -76,7 +76,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     ];
     return (
         <>
-            <div className="border-b border-sidebar-border/80">
+            <div className="glass-subtle sticky top-0 z-20 mx-3 mt-3 rounded-2xl">
                 <div className="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
                     {/* Mobile Menu */}
                     <div className="lg:hidden">
@@ -85,14 +85,14 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="mr-2 h-[34px] w-[34px]"
+                                    className="mr-2 h-[34px] w-[34px] rounded-xl"
                                 >
                                     <Menu className="h-5 w-5" />
                                 </Button>
                             </SheetTrigger>
                             <SheetContent
                                 side="left"
-                                className="flex h-full w-64 flex-col items-stretch justify-between bg-sidebar"
+                                className="flex h-full w-64 flex-col items-stretch justify-between"
                             >
                                 <SheetTitle className="sr-only">
                                     Navigation Menu
@@ -176,7 +176,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                     page.url,
                                                     item.href,
                                                 ) && activeItemStyles,
-                                                'h-9 cursor-pointer px-3',
+                                                'h-9 cursor-pointer rounded-xl px-3',
                                             )}
                                         >
                                             {item.icon && (
@@ -188,7 +188,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                             {item.title}
                                         </Link>
                                         {isSameUrl(page.url, item.href) && (
-                                            <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"></div>
+                                            <div className="absolute bottom-1 left-1/2 h-1 w-8 -translate-x-1/2 rounded-full bg-primary"></div>
                                         )}
                                     </NavigationMenuItem>
                                 ))}
@@ -201,7 +201,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="group h-9 w-9 cursor-pointer"
+                                className="group h-9 w-9 cursor-pointer rounded-xl"
                             >
                                 <Search className="!size-5 opacity-80 group-hover:opacity-100" />
                             </Button>
@@ -217,7 +217,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                     href={resolveUrl(item.href)}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="group ml-1 inline-flex h-9 w-9 items-center justify-center rounded-md bg-transparent p-0 text-sm font-medium text-accent-foreground ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+                                                    className="group ml-1 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-transparent p-0 text-sm font-medium text-accent-foreground ring-offset-background transition-colors hover:bg-accent/70 hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
                                                 >
                                                     <span className="sr-only">
                                                         {item.title}
@@ -263,7 +263,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                 </div>
             </div>
             {breadcrumbs.length > 1 && (
-                <div className="flex w-full border-b border-sidebar-border/70">
+                <div className="mx-3 mt-2 flex w-[calc(100%-1.5rem)] rounded-2xl border border-sidebar-border/40 bg-background/35 backdrop-blur-xl">
                     <div className="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl">
                         <Breadcrumbs breadcrumbs={breadcrumbs} />
                     </div>

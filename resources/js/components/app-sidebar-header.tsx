@@ -13,9 +13,9 @@ export function AppSidebarHeader({
     const userId = (auth as any)?.user?.id;
 
     return (
-        <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-sidebar-border/50 px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 md:px-4">
+        <header className="glass-subtle sticky top-0 z-20 mx-3 mt-3 flex h-16 shrink-0 items-center justify-between gap-2 rounded-2xl px-4 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 md:mx-4">
             <div className="flex items-center gap-2">
-                <SidebarTrigger className="-ml-1" />
+                <SidebarTrigger className="-ml-1 rounded-xl" />
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
             </div>
             {userId && <NotificationCenter userId={userId} />}

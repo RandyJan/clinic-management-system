@@ -18,16 +18,16 @@ export default function AuthSplitLayout({
     const { name, quote } = usePage<SharedData>().props;
 
     return (
-        <div className="grid min-h-dvh bg-background lg:grid-cols-[minmax(0,1.05fr)_minmax(28rem,0.95fr)]">
-            <div className="relative hidden min-h-dvh flex-col overflow-hidden bg-[#102326] p-10 text-white lg:flex dark:border-r">
-                <div className="absolute inset-0 bg-[linear-gradient(135deg,#102326_0%,#17444b_48%,#315f54_100%)]" />
+        <div className="grid min-h-dvh bg-transparent lg:grid-cols-[minmax(0,1.05fr)_minmax(28rem,0.95fr)]">
+            <div className="relative m-3 hidden min-h-[calc(100dvh-1.5rem)] flex-col overflow-hidden rounded-3xl p-10 text-white lg:flex">
+                <div className="absolute inset-0 bg-[linear-gradient(135deg,rgb(15_23_42)_0%,rgb(30_64_91)_48%,rgb(55_65_130)_100%)]" />
                 <div className="absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.12)_1px,transparent_1px)] [background-size:44px_44px] opacity-25" />
                 <AppLogoIcon className="absolute right-[-4rem] bottom-[-4rem] size-80 opacity-10" />
                 <Link
                     href={home()}
                     className="relative z-20 flex items-center gap-3 text-lg font-semibold"
                 >
-                    <span className="flex size-11 items-center justify-center rounded-md bg-white/95 p-1.5 shadow-lg shadow-black/20">
+                    <span className="flex size-11 items-center justify-center rounded-xl bg-white/95 p-1.5 shadow-lg shadow-black/20">
                         <AppLogoIcon className="size-full" />
                     </span>
                     {name}
@@ -35,7 +35,7 @@ export default function AuthSplitLayout({
 
                 <div className="relative z-20 my-auto max-w-xl space-y-8">
                     <div className="space-y-4">
-                        <div className="inline-flex items-center gap-2 rounded-md border border-white/15 bg-white/10 px-3 py-1.5 text-sm text-white/85 backdrop-blur">
+                        <div className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-1.5 text-sm text-white/85 backdrop-blur">
                             <ShieldCheck className="size-4" />
                             Secure clinic workspace
                         </div>
@@ -50,7 +50,7 @@ export default function AuthSplitLayout({
                     </div>
 
                     <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="rounded-lg border border-white/15 bg-white/10 p-4 backdrop-blur">
+                        <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
                             <HeartPulse className="mb-3 size-5 text-emerald-200" />
                             <div className="text-sm font-medium">
                                 Patient-centered records
@@ -59,7 +59,7 @@ export default function AuthSplitLayout({
                                 Vitals, history, and consultations in one place.
                             </div>
                         </div>
-                        <div className="rounded-lg border border-white/15 bg-white/10 p-4 backdrop-blur">
+                        <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
                             <CalendarCheck2 className="mb-3 size-5 text-sky-200" />
                             <div className="text-sm font-medium">
                                 Live clinic flow
@@ -90,7 +90,7 @@ export default function AuthSplitLayout({
                         href={home()}
                         className="relative z-20 flex items-center justify-center lg:hidden"
                     >
-                        <span className="flex size-16 items-center justify-center rounded-lg border bg-card p-2 shadow-sm">
+                        <span className="glass-default flex size-16 items-center justify-center rounded-2xl p-2">
                             <AppLogoIcon className="size-full" />
                         </span>
                     </Link>
@@ -102,7 +102,7 @@ export default function AuthSplitLayout({
                             {description}
                         </p>
                     </div>
-                    <div className="rounded-lg border bg-card/95 p-5 shadow-xl shadow-black/5 sm:p-6 dark:bg-card/80">
+                    <div className="glass-default rounded-2xl p-5 sm:p-6">
                         {children}
                     </div>
                 </div>
