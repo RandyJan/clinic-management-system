@@ -9,12 +9,18 @@ class BillingPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('billing.view');
+        return $user->can('billing.view')
+            || $this->canUsePatientPortal($user);
     }
 
     public function view(User $user, Billing $billing): bool
     {
-        return $user->can('billing.view');
+        if ($user->can('billing.view')) {
+            return true;
+        }
+
+        return $this->canUsePatientPortal($user)
+            && $user->patient()->value('id') === $billing->patient_id;
     }
 
     public function create(User $user): bool
@@ -41,5 +47,12 @@ class BillingPolicy
     {
         return $user->can('billing.cancel')
             && $billing->payment_status !== Billing::STATUS_CANCELLED;
+    }
+
+    private function canUsePatientPortal(User $user): bool
+    {
+        return (bool) config('clinic.patient_portal_enabled')
+            && $user->can('billing.own.view')
+            && $user->patient()->exists();
     }
 }

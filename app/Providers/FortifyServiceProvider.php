@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Http\Responses\PendingApprovalRegisterResponse;
+use App\Models\User;
 use App\Services\FirstLoginBootstrapService;
 use App\Services\TurnstileService;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -15,6 +17,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Laravel\Fortify\Contracts\RegisterResponse;
 use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
@@ -24,7 +27,7 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(RegisterResponse::class, PendingApprovalRegisterResponse::class);
     }
 
     /**
@@ -42,9 +45,9 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureActions(): void
     {
-        // Registration and password reset disabled for LDAP authentication
+        // Password reset remains disabled for LDAP authentication.
         // Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
-        // Fortify::createUsersUsing(CreateNewUser::class);
+        Fortify::createUsersUsing(CreateNewUser::class);
 
         // Custom authentication callback for LDAP
         Fortify::authenticateUsing(function (Request $request) {
@@ -72,23 +75,18 @@ class FortifyServiceProvider extends ServiceProvider
             ];
 
             if (Auth::attempt($credentials)) {
-                $authenticatedUser = Auth::user();
+                return $this->validatedAuthenticatedUser();
+            }
 
-                if ($authenticatedUser === null) {
-                    return null;
-                }
+            $localUser = User::query()
+                ->where('username', $request->input(config('fortify.username')))
+                ->orWhere('email', $request->input(config('fortify.username')))
+                ->first();
 
-                $authenticatedUser = app(FirstLoginBootstrapService::class)->bootstrap($authenticatedUser);
+            if ($localUser !== null && Hash::check($request->input('password'), $localUser->getAuthPassword())) {
+                Auth::login($localUser, $request->boolean('remember'));
 
-                if (! $authenticatedUser->is_active) {
-                    Auth::logout();
-
-                    throw ValidationException::withMessages([
-                        config('fortify.username') => 'Your account has been deactivated.',
-                    ]);
-                }
-
-                return $authenticatedUser;
+                return $this->validatedAuthenticatedUser();
             }
 
             return null;
@@ -104,6 +102,27 @@ class FortifyServiceProvider extends ServiceProvider
         });
     }
 
+    private function validatedAuthenticatedUser(): ?User
+    {
+        $authenticatedUser = Auth::user();
+
+        if (! $authenticatedUser instanceof User) {
+            return null;
+        }
+
+        $authenticatedUser = app(FirstLoginBootstrapService::class)->bootstrap($authenticatedUser);
+
+        if (! $authenticatedUser->is_active) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                config('fortify.username') => 'Your account is pending administrator approval or has been deactivated.',
+            ]);
+        }
+
+        return $authenticatedUser;
+    }
+
     /**
      * Configure Fortify views.
      */
@@ -111,10 +130,12 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::loginView(fn (Request $request) => Inertia::render('auth/login', [
             'canResetPassword' => false, // Disabled for LDAP authentication
-            'canRegister' => false, // Disabled for LDAP authentication
+            'canRegister' => true,
             'status' => $request->session()->get('status'),
             'turnstileSiteKey' => config('captcha.site_key'),
         ]));
+
+        Fortify::registerView(fn () => Inertia::render('auth/register'));
 
         Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/two-factor-challenge'));
 

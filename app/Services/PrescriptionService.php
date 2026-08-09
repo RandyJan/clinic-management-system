@@ -17,7 +17,10 @@ use Illuminate\Validation\ValidationException;
 
 class PrescriptionService
 {
-    public function __construct(private readonly MedicineInventoryService $inventoryService) {}
+    public function __construct(
+        private readonly MedicineInventoryService $inventoryService,
+        private readonly NotificationService $notificationService,
+    ) {}
 
     /**
      * @param  array{search?: string|null, status?: string|null, patient_id?: int|null}  $filters
@@ -133,6 +136,8 @@ class PrescriptionService
                 ->performedOn($prescription)
                 ->event('created')
                 ->log('Created prescription');
+
+            $this->notificationService->notifyPrescriptionCreated($prescription);
 
             return $prescription;
         });

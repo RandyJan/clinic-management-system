@@ -20,7 +20,10 @@ use Illuminate\Validation\ValidationException;
 
 class BillingService
 {
-    public function __construct(private readonly ServiceCatalogService $serviceCatalog) {}
+    public function __construct(
+        private readonly ServiceCatalogService $serviceCatalog,
+        private readonly NotificationService $notificationService,
+    ) {}
 
     /** @param array{search?: string|null, status?: string|null, patient_id?: int|null} $filters */
     public function list(array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -125,6 +128,8 @@ class BillingService
                 ->performedOn($billing)
                 ->event('created')
                 ->log('Created billing invoice');
+
+            $this->notificationService->notifyBillingCreated($billing);
 
             return $billing->refresh();
         });

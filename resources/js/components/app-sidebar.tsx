@@ -1,3 +1,4 @@
+import PatientPortalController from '@/actions/App/Http/Controllers/PatientPortalController';
 import { clinic as clinicSettings } from '@/actions/App/Http/Controllers/Settings/ClinicSettingsController';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -34,10 +35,12 @@ import {
     FileText,
     FlaskConical,
     HandCoins,
+    IdCard,
     LayoutGrid,
     ListOrdered,
     PackagePlus,
     Pill,
+    PlusCircle,
     Settings,
     ShieldCheck,
     Stethoscope,
@@ -63,6 +66,12 @@ export function AppSidebar() {
     const { auth } = usePage<SharedData>().props;
     const permissions = new Set(auth.permissions ?? []);
     const can = (permission: string) => permissions.has(permission);
+    const isPatientPortalUser =
+        can('medical-records.own.view') ||
+        can('prescriptions.own.view') ||
+        can('laboratory-requests.own.view') ||
+        can('billing.own.view') ||
+        can('appointments.request');
 
     const navigationGroups: NavGroup[] = [
         {
@@ -72,7 +81,9 @@ export function AppSidebar() {
                     ? [
                           {
                               title: 'Dashboard',
-                              href: dashboard(),
+                              href: isPatientPortalUser
+                                  ? PatientPortalController.dashboard()
+                                  : dashboard(),
                               icon: LayoutGrid,
                           },
                       ]
@@ -88,6 +99,74 @@ export function AppSidebar() {
                     : []),
             ],
         },
+        ...(isPatientPortalUser
+            ? [
+                  {
+                      title: 'Patient Portal',
+                      items: [
+                          ...(can('appointments.own.view')
+                              ? [
+                                    {
+                                        title: 'My Appointments',
+                                        href: PatientPortalController.appointments(),
+                                        icon: CalendarDays,
+                                    },
+                                ]
+                              : []),
+                          ...(can('appointments.request')
+                              ? [
+                                    {
+                                        title: 'Request Appointment',
+                                        href: PatientPortalController.createAppointment(),
+                                        icon: PlusCircle,
+                                    },
+                                ]
+                              : []),
+                          ...(can('medical-records.own.view')
+                              ? [
+                                    {
+                                        title: 'My Medical Records',
+                                        href: PatientPortalController.records(),
+                                        icon: ClipboardList,
+                                    },
+                                ]
+                              : []),
+                          ...(can('prescriptions.own.view')
+                              ? [
+                                    {
+                                        title: 'My Prescriptions',
+                                        href: PatientPortalController.prescriptions(),
+                                        icon: Pill,
+                                    },
+                                ]
+                              : []),
+                          ...(can('laboratory-requests.own.view')
+                              ? [
+                                    {
+                                        title: 'My Lab Results',
+                                        href: PatientPortalController.labResults(),
+                                        icon: FlaskConical,
+                                    },
+                                ]
+                              : []),
+                          ...(can('billing.own.view')
+                              ? [
+                                    {
+                                        title: 'My Bills',
+                                        href: PatientPortalController.bills(),
+                                        icon: CreditCard,
+                                    },
+                                ]
+                              : []),
+                          {
+                              title: 'My Profile',
+                              href: PatientPortalController.profile(),
+                              icon: IdCard,
+                          },
+                      ],
+                  },
+              ]
+            : []),
         {
             title: 'Front Desk',
             items: [
@@ -100,7 +179,7 @@ export function AppSidebar() {
                           },
                       ]
                     : []),
-                ...(can('appointments.own.view')
+                ...(can('appointments.own.view') && !isPatientPortalUser
                     ? [
                           {
                               title: 'Appointments',
@@ -116,7 +195,7 @@ export function AppSidebar() {
             items: [
                 ...(can('medical-records.view') ||
                 can('medical-records.assigned.view') ||
-                can('medical-records.own.view')
+                (can('medical-records.own.view') && !isPatientPortalUser)
                     ? [
                           {
                               title: 'Medical Records',
@@ -136,7 +215,7 @@ export function AppSidebar() {
                     : []),
                 ...(can('prescriptions.view') ||
                 can('prescriptions.doctor.view') ||
-                can('prescriptions.own.view')
+                (can('prescriptions.own.view') && !isPatientPortalUser)
                     ? [
                           {
                               title: 'Prescriptions',
@@ -147,7 +226,7 @@ export function AppSidebar() {
                     : []),
                 ...(can('laboratory-requests.view') ||
                 can('laboratory-requests.doctor.view') ||
-                can('laboratory-requests.own.view')
+                (can('laboratory-requests.own.view') && !isPatientPortalUser)
                     ? [
                           {
                               title: 'Laboratory',
@@ -161,7 +240,7 @@ export function AppSidebar() {
         {
             title: 'Billing',
             items: [
-                ...(can('billing.view')
+                ...(can('billing.view') && !isPatientPortalUser
                     ? [
                           {
                               title: 'Billing',
@@ -245,7 +324,11 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <Link
-                                href={dashboard()}
+                                href={
+                                    isPatientPortalUser
+                                        ? PatientPortalController.dashboard()
+                                        : dashboard()
+                                }
                                 prefetch
                                 data-global-loader="module"
                             >

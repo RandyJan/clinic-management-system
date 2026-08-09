@@ -27,7 +27,7 @@ class EnsureUserIsActive
             return redirect()
                 ->route('login')
                 ->withErrors([
-                    config('fortify.username') => 'Your account has been deactivated.',
+                    config('fortify.username') => 'Your account is pending administrator approval or has been deactivated.',
                 ]);
         }
 

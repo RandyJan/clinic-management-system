@@ -59,6 +59,11 @@ import { FormEvent, useMemo, useState } from 'react';
 type Notification = {
     id: string;
     type: string;
+    title: string;
+    message: string;
+    notification_type?: string;
+    action_url?: string | null;
+    is_read: boolean;
     old_role?: string | null;
     new_role?: string | null;
     changed_by?: string;
@@ -88,9 +93,11 @@ type PaginationLink = {
 export default function NotificationsPage({
     notifications,
     filters,
+    unread_count,
 }: {
     notifications: PaginatedNotifications;
     filters: NotificationFilters;
+    unread_count: number;
 }) {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [search, setSearch] = useState(filters?.search ?? '');
@@ -105,10 +112,10 @@ export default function NotificationsPage({
     const summary = useMemo(() => {
         return {
             total: notifications.total,
-            unread: data.filter((n) => !n.read_at).length,
-            read: data.filter((n) => n.read_at).length,
+            unread: unread_count,
+            read: Math.max(notifications.total - unread_count, 0),
         };
-    }, [notifications.total, data]);
+    }, [notifications.total, unread_count]);
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Notifications', href: notificationsIndex().url },
@@ -294,8 +301,23 @@ export default function NotificationsPage({
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All</SelectItem>
-                                    <SelectItem value="role_changed">
-                                        Role Changed
+                                    <SelectItem value="Appointment">
+                                        Appointment
+                                    </SelectItem>
+                                    <SelectItem value="Billing">
+                                        Billing
+                                    </SelectItem>
+                                    <SelectItem value="Prescription">
+                                        Prescription
+                                    </SelectItem>
+                                    <SelectItem value="Laboratory">
+                                        Laboratory
+                                    </SelectItem>
+                                    <SelectItem value="Inventory">
+                                        Inventory
+                                    </SelectItem>
+                                    <SelectItem value="System">
+                                        System
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
@@ -359,6 +381,10 @@ export default function NotificationsPage({
                                                 {
                                                     preserveScroll: true,
                                                 },
+                                            );
+                                        } else if (row.original.action_url) {
+                                            router.visit(
+                                                row.original.action_url,
                                             );
                                         }
                                     }}
@@ -432,21 +458,15 @@ export default function NotificationsPage({
 }
 
 function getTitle(n: Notification) {
-    if (n.type === 'role_changed') return 'Role Updated';
-    return 'Notification';
+    return n.title ?? 'Notification';
 }
 
 function getDescription(n: Notification) {
-    if (n.type === 'role_changed') {
-        return `Changed from ${n.old_role ?? 'none'} to ${
-            n.new_role ?? 'none'
-        } by ${n.changed_by}`;
-    }
-    return 'System notification';
+    return n.message ?? 'System notification';
 }
 
 function formatType(type: string) {
-    return type.replace('_', ' ');
+    return type.replaceAll('_', ' ');
 }
 
 function formatDateTime(value: string) {

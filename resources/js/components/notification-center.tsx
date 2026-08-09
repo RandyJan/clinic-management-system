@@ -15,7 +15,7 @@ interface NotificationCenterProps {
 }
 
 export function NotificationCenter({ userId }: NotificationCenterProps) {
-    const { notifications, unreadCount } = useNotifications(userId);
+    const { notifications, unreadCount, reload } = useNotifications(userId);
 
     return (
         <DropdownMenu>
@@ -45,6 +45,7 @@ export function NotificationCenter({ userId }: NotificationCenterProps) {
                                 {},
                                 {
                                     preserveScroll: true,
+                                    onSuccess: reload,
                                 },
                             )
                         }
@@ -64,6 +65,7 @@ export function NotificationCenter({ userId }: NotificationCenterProps) {
                                 <NotificationItem
                                     key={notification.id}
                                     notification={notification}
+                                    reload={reload}
                                 />
                             ))}
                         </div>
@@ -82,7 +84,13 @@ export function NotificationCenter({ userId }: NotificationCenterProps) {
     );
 }
 
-function NotificationItem({ notification }: { notification: Notification }) {
+function NotificationItem({
+    notification,
+    reload,
+}: {
+    notification: Notification;
+    reload: () => void;
+}) {
     if (notification.type === 'role_changed') {
         return (
             <div
@@ -93,8 +101,17 @@ function NotificationItem({ notification }: { notification: Notification }) {
                             {},
                             {
                                 preserveScroll: true,
+                                onSuccess: () => {
+                                    if (notification.action_url) {
+                                        router.visit(notification.action_url);
+                                    } else {
+                                        reload();
+                                    }
+                                },
                             },
                         );
+                    } else if (notification.action_url) {
+                        router.visit(notification.action_url);
                     }
                 }}
                 className={cn(
@@ -106,22 +123,10 @@ function NotificationItem({ notification }: { notification: Notification }) {
             >
                 <div className="space-y-1">
                     <p className="text-sm leading-snug font-medium">
-                        Your role was changed
+                        {notification.title}
                     </p>
                     <p className="text-xs leading-snug text-muted-foreground">
-                        {notification.old_role && (
-                            <>
-                                Changed from{' '}
-                                <span className="font-mono text-xs">
-                                    {notification.old_role}
-                                </span>{' '}
-                                to{' '}
-                            </>
-                        )}
-                        <span className="font-mono text-xs">
-                            {notification.new_role || 'no role'}
-                        </span>{' '}
-                        by {notification.changed_by}
+                        {notification.message}
                     </p>
                     <p className="text-xs text-muted-foreground">
                         {formatTime(notification.created_at)}
@@ -132,8 +137,39 @@ function NotificationItem({ notification }: { notification: Notification }) {
     }
 
     return (
-        <div className="border-l-4 border-l-transparent px-4 py-3">
-            <p className="text-sm text-muted-foreground">
+        <div
+            onClick={() => {
+                if (!notification.read_at) {
+                    router.post(
+                        `/notifications/${notification.id}/read`,
+                        {},
+                        {
+                            preserveScroll: true,
+                            onSuccess: () => {
+                                if (notification.action_url) {
+                                    router.visit(notification.action_url);
+                                } else {
+                                    reload();
+                                }
+                            },
+                        },
+                    );
+                } else if (notification.action_url) {
+                    router.visit(notification.action_url);
+                }
+            }}
+            className={cn(
+                'cursor-pointer border-l-4 px-4 py-3 transition-colors',
+                notification.read_at
+                    ? 'border-l-transparent bg-background/45'
+                    : 'border-l-primary bg-primary/5',
+            )}
+        >
+            <p className="text-sm font-medium">{notification.title}</p>
+            <p className="text-xs leading-snug text-muted-foreground">
+                {notification.message}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
                 {formatTime(notification.created_at)}
             </p>
         </div>

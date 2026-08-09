@@ -25,7 +25,13 @@ export default function AppLayout({
 
         return {
             id: notification?.id ?? payload?.id ?? `${Date.now()}`,
-            type: payload?.type ?? 'general',
+            type: payload?.type ?? payload?.notification_type ?? 'System',
+            title: payload?.title ?? 'Notification',
+            message: payload?.message ?? 'You have a new notification',
+            notification_type:
+                payload?.notification_type ?? payload?.type ?? 'System',
+            action_url: payload?.action_url ?? null,
+            is_read: payload?.is_read ?? Boolean(notification?.read_at),
             user_id: payload?.user_id ?? 0,
             user_name: payload?.user_name ?? '',
             old_role: payload?.old_role ?? null,
@@ -145,33 +151,11 @@ export default function AppLayout({
                 }
 
                 // Show toast immediately
-                if (formatted.type === 'role_changed') {
-                    toast.info('Role Updated', {
-                        id: formatted.id,
-                        description: [
-                            formatted.old_role
-                                ? `from ${formatted.old_role}`
-                                : null,
-                            formatted.new_role
-                                ? `to ${formatted.new_role}`
-                                : null,
-                            formatted.changed_by
-                                ? `by ${formatted.changed_by}`
-                                : null,
-                        ]
-                            .filter(Boolean)
-                            .join(' '),
-                        duration: 5000,
-                    });
-                } else {
-                    toast.info('New Notification', {
-                        id: formatted.id,
-                        description: formatted.user_name
-                            ? `${formatted.user_name} sent you a notification`
-                            : 'You have a new notification',
-                        duration: 5000,
-                    });
-                }
+                toast.info(formatted.title, {
+                    id: formatted.id,
+                    description: formatted.message,
+                    duration: 5000,
+                });
             });
 
             channel.error((error: any) => {

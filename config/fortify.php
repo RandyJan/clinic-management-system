@@ -144,7 +144,7 @@ return [
     */
 
     'features' => [
-        // Features::registration(), // Disabled for LDAP authentication
+        Features::registration(),
         // Features::resetPasswords(), // Disabled for LDAP authentication - users reset passwords through Active Directory
         // Features::emailVerification(),
         Features::twoFactorAuthentication([

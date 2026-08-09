@@ -24,8 +24,12 @@ class NotificationController extends Controller
 
     public function index(Request $request): Response
     {
+        $filters = $request->only(['search', 'type']);
+
         return Inertia::render('notifications/index', [
-            'notifications' => $this->service->all($request->user()),
+            'notifications' => $this->service->all($request->user(), $filters),
+            'filters' => $filters,
+            'unread_count' => $request->user()->unreadNotifications()->count(),
         ]);
     }
 

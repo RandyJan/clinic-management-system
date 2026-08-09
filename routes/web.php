@@ -12,6 +12,7 @@ use App\Http\Controllers\MedicalRecordController;
 use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PatientController;
+use App\Http\Controllers\PatientPortalController;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\QueueController;
 use App\Http\Controllers\RoleManagementController;
@@ -97,6 +98,37 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('patients/{patient}/consultations', [ConsultationController::class, 'patient'])
         ->middleware('can:consultations.view')
         ->name('patients.consultations.index');
+
+    Route::prefix('patient-portal')->name('patient-portal.')->group(function () {
+        Route::get('/', [PatientPortalController::class, 'dashboard'])
+            ->middleware('can:dashboard.view')
+            ->name('dashboard');
+        Route::get('appointments', [PatientPortalController::class, 'appointments'])
+            ->middleware('can:appointments.own.view')
+            ->name('appointments');
+        Route::get('appointments/request', [PatientPortalController::class, 'createAppointment'])
+            ->middleware('can:appointments.request')
+            ->name('appointments.create');
+        Route::post('appointments', [PatientPortalController::class, 'storeAppointment'])
+            ->middleware('can:appointments.request')
+            ->name('appointments.store');
+        Route::get('medical-records', [PatientPortalController::class, 'records'])
+            ->middleware('can:medical-records.own.view')
+            ->name('medical-records');
+        Route::get('prescriptions', [PatientPortalController::class, 'prescriptions'])
+            ->middleware('can:prescriptions.own.view')
+            ->name('prescriptions');
+        Route::get('lab-results', [PatientPortalController::class, 'labResults'])
+            ->middleware('can:laboratory-requests.own.view')
+            ->name('lab-results');
+        Route::get('bills', [PatientPortalController::class, 'bills'])
+            ->middleware('can:billing.own.view')
+            ->name('bills');
+        Route::get('profile', [PatientPortalController::class, 'profile'])
+            ->name('profile');
+        Route::patch('profile', [PatientPortalController::class, 'updateProfile'])
+            ->name('profile.update');
+    });
 
     Route::get('medical-records', [MedicalRecordController::class, 'index'])
         ->name('medical-records.index');

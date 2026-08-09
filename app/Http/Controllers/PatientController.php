@@ -29,7 +29,9 @@ class PatientController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('patients/create');
+        return Inertia::render('patients/create', [
+            'users' => $this->service->availableUsers(),
+        ]);
     }
 
     public function store(StorePatientRequest $request): RedirectResponse
@@ -50,6 +52,7 @@ class PatientController extends Controller
     {
         return Inertia::render('patients/edit', [
             'patient' => $this->service->detail($patient),
+            'users' => $this->service->availableUsers($patient),
         ]);
     }
 

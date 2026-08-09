@@ -18,6 +18,8 @@ use Throwable;
 
 class LaboratoryRequestService
 {
+    public function __construct(private readonly NotificationService $notificationService) {}
+
     /** @param array{search?: string|null, status?: string|null} $filters */
     public function list(User $actor, array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
@@ -148,6 +150,8 @@ class LaboratoryRequestService
 
                 activity('laboratory-result-management')->causedBy($actor)->performedOn($result)
                     ->event($result->wasRecentlyCreated ? 'created' : 'updated')->log('Uploaded laboratory result');
+
+                $this->notificationService->notifyLaboratoryResultUploaded($lockedRequest);
 
                 return $result;
             });

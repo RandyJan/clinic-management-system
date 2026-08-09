@@ -1,10 +1,11 @@
-import type { GlobalEvent, PendingVisit } from '@inertiajs/core';
+import type { PendingVisit } from '@inertiajs/core';
 import { router } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 const LOADER_DELAY_MS = 150;
 const MIN_VISIBLE_MS = 350;
+const MAX_VISIBLE_MS = 10000;
 const MODULE_LINK_SELECTOR = '[data-global-loader="module"]';
 
 function shouldShowGlobalLoader(visit: PendingVisit): boolean {
@@ -28,6 +29,7 @@ export function GlobalLoader() {
     const startedAt = useRef<number | null>(null);
     const showTimer = useRef<number | null>(null);
     const hideTimer = useRef<number | null>(null);
+    const safetyTimer = useRef<number | null>(null);
 
     useEffect(() => {
         const clearShowTimer = () => {
@@ -44,10 +46,19 @@ export function GlobalLoader() {
             }
         };
 
+        const clearSafetyTimer = () => {
+            if (safetyTimer.current) {
+                window.clearTimeout(safetyTimer.current);
+                safetyTimer.current = null;
+            }
+        };
+
         const hideLoader = () => {
             clearShowTimer();
+            clearSafetyTimer();
 
             if (!startedAt.current) {
+                setIsVisible(false);
                 return;
             }
 
@@ -68,6 +79,11 @@ export function GlobalLoader() {
             showTimer.current = window.setTimeout(() => {
                 startedAt.current = Date.now();
                 setIsVisible(true);
+                clearSafetyTimer();
+                safetyTimer.current = window.setTimeout(() => {
+                    startedAt.current = null;
+                    setIsVisible(false);
+                }, MAX_VISIBLE_MS);
             }, delay);
         };
 
@@ -105,33 +121,20 @@ export function GlobalLoader() {
 
         document.addEventListener('click', handleModuleLinkClick, true);
 
-        const removeStartListener = router.on(
-            'start',
-            (event: GlobalEvent<'start'>) => {
-                if (!shouldShowGlobalLoader(event.detail.visit)) {
-                    return;
-                }
+        const removeStartListener = router.on('start', (event) => {
+            if (!shouldShowGlobalLoader(event.detail.visit)) {
+                return;
+            }
 
-                showLoader();
-            },
-        );
+            showLoader();
+        });
 
-        const removeFinishListener = router.on(
-            'finish',
-            (event: GlobalEvent<'finish'>) => {
-                if (
-                    event.detail.visit.completed ||
-                    event.detail.visit.cancelled ||
-                    event.detail.visit.interrupted
-                ) {
-                    hideLoader();
-                }
-            },
-        );
+        const removeFinishListener = router.on('finish', () => hideLoader());
 
         return () => {
             clearShowTimer();
             clearHideTimer();
+            clearSafetyTimer();
             document.removeEventListener('click', handleModuleLinkClick, true);
             removeStartListener();
             removeFinishListener();

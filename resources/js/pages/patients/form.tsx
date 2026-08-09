@@ -16,11 +16,11 @@ import { index as patientsIndex } from '@/routes/patients';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft, Save } from 'lucide-react';
-import { type ReactNode } from 'react';
-import { FormEvent } from 'react';
+import { FormEvent, type ReactNode } from 'react';
 import { Patient, PatientFormData } from './types';
 
 const emptyForm: PatientFormData = {
+    user_id: '',
     first_name: '',
     middle_name: '',
     last_name: '',
@@ -40,13 +40,16 @@ const emptyForm: PatientFormData = {
 
 export default function PatientFormPage({
     patient,
+    users = [],
 }: {
     patient?: Patient;
+    users?: Array<{ id: number; label: string; email: string | null }>;
 }) {
     const isEditing = patient !== undefined;
     const form = useForm<PatientFormData>(
         patient
             ? {
+                  user_id: patient.user_id?.toString() ?? '',
                   first_name: patient.first_name,
                   middle_name: patient.middle_name ?? '',
                   last_name: patient.last_name,
@@ -118,6 +121,22 @@ export default function PatientFormPage({
                     className="grid gap-4 rounded-lg border border-sidebar-border/70 p-4 dark:border-sidebar-border"
                 >
                     <Section title="Personal information">
+                        <SelectField
+                            label="Linked user account"
+                            value={form.data.user_id || 'none'}
+                            error={form.errors.user_id}
+                            options={users.map((user) => [
+                                user.id.toString(),
+                                user.label,
+                            ])}
+                            emptyLabel="No linked account"
+                            onChange={(value) =>
+                                form.setData(
+                                    'user_id',
+                                    value === 'none' ? '' : value,
+                                )
+                            }
+                        />
                         <TextField
                             label="First name"
                             value={form.data.first_name}
@@ -229,9 +248,7 @@ export default function PatientFormPage({
                             error={form.errors.address}
                             required
                             className="md:col-span-2"
-                            onChange={(value) =>
-                                form.setData('address', value)
-                            }
+                            onChange={(value) => form.setData('address', value)}
                         />
                         <TextField
                             label="Emergency contact name"
@@ -282,13 +299,7 @@ export default function PatientFormPage({
     );
 }
 
-function Section({
-    title,
-    children,
-}: {
-    title: string;
-    children: ReactNode;
-}) {
+function Section({ title, children }: { title: string; children: ReactNode }) {
     return (
         <section className="grid gap-3">
             <h2 className="text-sm font-semibold">{title}</h2>
@@ -339,6 +350,7 @@ function SelectField({
     error,
     required,
     options,
+    emptyLabel,
     onChange,
 }: {
     label: string;
@@ -346,6 +358,7 @@ function SelectField({
     error?: string;
     required?: boolean;
     options: [string, string][];
+    emptyLabel?: string;
     onChange: (value: string) => void;
 }) {
     return (
@@ -359,6 +372,9 @@ function SelectField({
                     <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                    {emptyLabel && (
+                        <SelectItem value="none">{emptyLabel}</SelectItem>
+                    )}
                     {options.map(([optionValue, text]) => (
                         <SelectItem key={optionValue} value={optionValue}>
                             {text}

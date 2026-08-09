@@ -3,6 +3,7 @@ import { MedicalCertificateHistoryItem } from '../medical-certificates/types';
 
 export type Patient = {
     id: number;
+    user_id?: number | null;
     patient_code: string;
     first_name: string;
     middle_name: string | null;
@@ -47,6 +48,7 @@ export type BillingHistoryItem = {
 };
 
 export type PatientFormData = {
+    user_id: string;
     first_name: string;
     middle_name: string;
     last_name: string;

@@ -20,6 +20,7 @@ class AppointmentService
     public function __construct(
         private readonly VitalSignService $vitalSignService,
         private readonly ClinicSettingsService $clinicSettingsService,
+        private readonly NotificationService $notificationService,
     ) {}
 
     /**
@@ -97,6 +98,8 @@ class AppointmentService
                 ->performedOn($appointment)
                 ->event('created')
                 ->log('Created appointment');
+
+            $this->notificationService->notifyAppointmentCreated($appointment);
 
             return $appointment;
         });

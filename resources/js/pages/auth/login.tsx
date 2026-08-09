@@ -9,7 +9,7 @@ import { PasswordInput } from '@/components/ui/password-input';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
 import { store } from '@/routes/login';
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, Link } from '@inertiajs/react';
 import { Info, LockKeyhole, UserRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -32,7 +32,7 @@ export default function Login({ status, turnstileSiteKey }: LoginProps) {
     return (
         <AuthLayout
             title="Log in to your account"
-            description="Enter your Active Directory username and password below to log in"
+            description="Enter your username and password below to log in"
         >
             <Head title="Log in" />
 
@@ -46,13 +46,12 @@ export default function Login({ status, turnstileSiteKey }: LoginProps) {
                         <div className="flex gap-3 rounded-lg border border-sky-200 bg-sky-50 p-3 text-sm text-sky-950 dark:border-sky-900/70 dark:bg-sky-950/40 dark:text-sky-100">
                             <Info className="mt-0.5 size-4 shrink-0" />
                             <div className="grid gap-1">
-                                <p className="font-semibold">
-                                    Active Directory Account Required
-                                </p>
+                                <p className="font-semibold">Account access</p>
                                 <p className="leading-5 text-sky-800 dark:text-sky-200">
-                                    Use your Active Directory credentials. For
-                                    access assistance, contact your system
-                                    administrator.
+                                    Use your approved clinic account or Active
+                                    Directory credentials. New local accounts
+                                    require administrator approval before access
+                                    is granted.
                                 </p>
                             </div>
                         </div>
@@ -180,6 +179,16 @@ export default function Login({ status, turnstileSiteKey }: LoginProps) {
                     {status}
                 </div>
             )}
+
+            <p className="text-center text-sm text-muted-foreground">
+                Need an account?{' '}
+                <Link
+                    href="/register"
+                    className="font-medium text-primary underline underline-offset-4"
+                >
+                    Register for access
+                </Link>
+            </p>
         </AuthLayout>
     );
 }

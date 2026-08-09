@@ -120,6 +120,30 @@ class PatientService
     }
 
     /**
+     * @return Collection<int, array{id: int, label: string, email: string|null}>
+     */
+    public function availableUsers(?Patient $patient = null): Collection
+    {
+        return User::query()
+            ->select(['id', 'name', 'email', 'username'])
+            ->where('is_active', true)
+            ->where(function ($query) use ($patient): void {
+                $query->whereDoesntHave('patient');
+
+                if ($patient !== null && $patient->user_id !== null) {
+                    $query->orWhere('id', $patient->user_id);
+                }
+            })
+            ->orderBy('name')
+            ->get()
+            ->map(fn (User $user): array => [
+                'id' => $user->id,
+                'label' => $user->name.' ('.($user->email ?? $user->username ?? 'No email').')',
+                'email' => $user->email,
+            ]);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function profile(Patient $patient): array
@@ -171,6 +195,7 @@ class PatientService
     {
         return [
             'id' => $patient->id,
+            'user_id' => $patient->user_id,
             'patient_code' => $patient->patient_code,
             'first_name' => $patient->first_name,
             'middle_name' => $patient->middle_name,

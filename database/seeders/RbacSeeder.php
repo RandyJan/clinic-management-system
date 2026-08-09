@@ -127,10 +127,13 @@ class RbacSeeder extends Seeder
             $permissions
                 ->whereIn('name', [
                     'dashboard.view',
+                    'appointments.request',
+                    'appointments.own.view',
                     'medical-certificates.own.view',
                     'medical-records.own.view',
                     'prescriptions.own.view',
                     'laboratory-requests.own.view',
+                    'billing.own.view',
                 ])
                 ->values()
         );

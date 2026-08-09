@@ -25,6 +25,7 @@ class StorePatientRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'user_id' => ['nullable', 'integer', Rule::exists('users', 'id'), Rule::unique('patients', 'user_id')],
             ...$this->patientRules(),
             'status' => ['nullable', Rule::in(['active', 'inactive'])],
         ];

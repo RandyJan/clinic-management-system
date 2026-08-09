@@ -73,6 +73,7 @@ class RoleManagementService
         'billing.cancel',
         'billing.payments.create',
         'billing.admin',
+        'billing.own.view',
         'queues.view',
         'queues.check-in',
         'queues.call',

@@ -82,7 +82,7 @@ class DoctorService
                 $query->whereDoesntHave('doctor');
 
                 if ($doctor !== null) {
-                    $query->orWhereKey($doctor->user_id);
+                    $query->orWhere('id', $doctor->user_id);
                 }
             })
             ->orderBy('name')

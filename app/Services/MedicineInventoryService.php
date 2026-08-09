@@ -16,6 +16,8 @@ use Illuminate\Validation\ValidationException;
 
 class MedicineInventoryService
 {
+    public function __construct(private readonly NotificationService $notificationService) {}
+
     /** @param array{search?: string|null, category?: string|null, status?: string|null} $filters */
     public function list(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
@@ -61,6 +63,10 @@ class MedicineInventoryService
                 ->event('created')
                 ->log('Created medicine');
 
+            if ($this->isLowStock($medicine)) {
+                $this->notificationService->notifyLowStock($medicine);
+            }
+
             return $medicine;
         });
     }
@@ -71,6 +77,7 @@ class MedicineInventoryService
         return DB::transaction(function () use ($medicine, $data, $actor): Medicine {
             $lockedMedicine = Medicine::query()->lockForUpdate()->findOrFail($medicine->id);
             $status = $data['status'] ?? Medicine::STATUS_ACTIVE;
+            $wasLowStock = $this->isLowStock($lockedMedicine);
 
             $lockedMedicine->forceFill([
                 ...$this->attributesFromData($data),
@@ -83,6 +90,10 @@ class MedicineInventoryService
                 ->performedOn($lockedMedicine)
                 ->event('updated')
                 ->log('Updated medicine');
+
+            if (! $wasLowStock && $this->isLowStock($lockedMedicine)) {
+                $this->notificationService->notifyLowStock($lockedMedicine);
+            }
 
             return $lockedMedicine->refresh();
         });
@@ -131,6 +142,10 @@ class MedicineInventoryService
                 ->event('updated')
                 ->log('Updated medicine stock');
 
+            if ($previousStock > (int) $lockedMedicine->reorder_level && $this->isLowStock($lockedMedicine)) {
+                $this->notificationService->notifyLowStock($lockedMedicine);
+            }
+
             return $lockedMedicine->refresh();
         });
     }
@@ -162,6 +177,10 @@ class MedicineInventoryService
             $prescription->id,
             "Dispensed {$prescription->prescription_number}"
         );
+
+        if ($previousStock > (int) $medicine->reorder_level && $this->isLowStock($medicine)) {
+            $this->notificationService->notifyLowStock($medicine);
+        }
     }
 
     /** @return array<string, mixed> */
@@ -342,6 +361,12 @@ class MedicineInventoryService
             'remarks' => $remarks,
             'created_by' => $actor->id,
         ]);
+    }
+
+    private function isLowStock(Medicine $medicine): bool
+    {
+        return $medicine->status === Medicine::STATUS_ACTIVE
+            && (int) $medicine->current_stock <= (int) $medicine->reorder_level;
     }
 
     /** @param array<string, mixed> $data */

@@ -4,8 +4,8 @@ namespace App\Notifications;
 
 use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Notification;
 
 class UserRoleChanged extends Notification
 {
@@ -37,7 +37,9 @@ class UserRoleChanged extends Notification
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
         return new BroadcastMessage([
-            'type' => 'role_changed',
+            'title' => 'Role updated',
+            'message' => "Your role was changed to {$this->newRole}.",
+            'notification_type' => ClinicEventNotification::TYPE_SYSTEM,
             'user_id' => $this->changedUser->id,
             'user_name' => $this->changedUser->name,
             'old_role' => $this->oldRole,
@@ -54,7 +56,9 @@ class UserRoleChanged extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'type' => 'role_changed',
+            'title' => 'Role updated',
+            'message' => "Your role was changed to {$this->newRole}.",
+            'notification_type' => ClinicEventNotification::TYPE_SYSTEM,
             'user_id' => $this->changedUser->id,
             'user_name' => $this->changedUser->name,
             'old_role' => $this->oldRole,
