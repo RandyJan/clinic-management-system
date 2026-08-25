@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Clinic;
+use App\Models\ClinicMembership;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
@@ -24,6 +26,39 @@ test('authorized users can view the user management page', function () {
             ->component('users/index')
             ->has('users.data')
             ->has('roles'));
+});
+
+test('user management displays assigned clinics', function () {
+    $actor = User::factory()->create(['name' => 'Admin Actor']);
+    $managedUser = User::factory()->create(['name' => 'Clinic Member']);
+    $clinic = Clinic::factory()->create(['name' => 'Clinic A']);
+    $clinicRole = Role::create(['name' => 'Doctor', 'guard_name' => 'web']);
+
+    ClinicMembership::query()->create([
+        'clinic_id' => $clinic->id,
+        'user_id' => $managedUser->id,
+        'role_id' => $clinicRole->id,
+        'status' => ClinicMembership::STATUS_ACTIVE,
+    ]);
+    ClinicMembership::query()->create([
+        'clinic_id' => $clinic->id,
+        'user_id' => $actor->id,
+        'role_id' => $clinicRole->id,
+        'status' => ClinicMembership::STATUS_ACTIVE,
+    ]);
+
+    Permission::firstOrCreate(['name' => 'users.view', 'guard_name' => 'web']);
+    $actor->givePermissionTo('users.view');
+
+    $this->actingAs($actor)
+        ->get(route('users.index'))
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('auth.current_clinic.name', 'Clinic A')
+            ->where('users.data.1.name', 'Clinic Member')
+            ->where('users.data.1.clinics.0.name', 'Clinic A')
+            ->where('users.data.1.clinics.0.role', 'Doctor')
+            ->where('users.data.1.clinics.0.status', ClinicMembership::STATUS_ACTIVE));
 });
 
 test('authorized users can change a user role', function () {

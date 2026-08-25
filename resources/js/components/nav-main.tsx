@@ -11,6 +11,19 @@ import { Link, usePage } from '@inertiajs/react';
 
 export function NavMain({ groups = [] }: { groups: NavGroup[] }) {
     const page = usePage();
+    const currentPath = normalizePath(page.url);
+    const activePath = groups
+        .flatMap((group) => group.items)
+        .map((item) => normalizePath(resolveUrl(item.href)))
+        .filter(
+            (itemPath) =>
+                currentPath === itemPath ||
+                currentPath.startsWith(`${itemPath}/`),
+        )
+        .sort(
+            (firstPath, secondPath) => secondPath.length - firstPath.length,
+        )[0];
+
     return (
         <>
             {groups.map((group) => (
@@ -21,9 +34,10 @@ export function NavMain({ groups = [] }: { groups: NavGroup[] }) {
                             <SidebarMenuItem key={item.title}>
                                 <SidebarMenuButton
                                     asChild
-                                    isActive={page.url.startsWith(
-                                        resolveUrl(item.href),
-                                    )}
+                                    isActive={
+                                        normalizePath(resolveUrl(item.href)) ===
+                                        activePath
+                                    }
                                     tooltip={{ children: item.title }}
                                 >
                                     <Link
@@ -42,4 +56,10 @@ export function NavMain({ groups = [] }: { groups: NavGroup[] }) {
             ))}
         </>
     );
+}
+
+function normalizePath(url: string): string {
+    const path = url.split(/[?#]/, 1)[0].replace(/\/+$/, '');
+
+    return path || '/';
 }

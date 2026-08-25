@@ -25,6 +25,11 @@ class RbacSeeder extends Seeder
             'guard_name' => 'web',
         ]);
 
+        Role::firstOrCreate([
+            'name' => 'Platform Administrator',
+            'guard_name' => 'web',
+        ]);
+
         $guestRole = Role::firstOrCreate([
             'name' => 'Guest',
             'guard_name' => 'web',

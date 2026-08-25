@@ -1,4 +1,5 @@
 import PatientPortalController from '@/actions/App/Http/Controllers/PatientPortalController';
+import PlatformClinicController from '@/actions/App/Http/Controllers/Platform/ClinicController';
 import { clinic as clinicSettings } from '@/actions/App/Http/Controllers/Settings/ClinicSettingsController';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -29,6 +30,7 @@ import { index as usersIndex } from '@/routes/users';
 import { type NavGroup, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
+    Building2,
     CalendarDays,
     ClipboardList,
     CreditCard,
@@ -66,14 +68,28 @@ export function AppSidebar() {
     const { auth } = usePage<SharedData>().props;
     const permissions = new Set(auth.permissions ?? []);
     const can = (permission: string) => permissions.has(permission);
-    const isPatientPortalUser =
-        can('medical-records.own.view') ||
-        can('prescriptions.own.view') ||
-        can('laboratory-requests.own.view') ||
-        can('billing.own.view') ||
-        can('appointments.request');
+    const isPatientPortalUser = auth.roles?.includes('Patient') ?? false;
+    const isPlatformAdministrator =
+        auth.roles?.includes('Platform Administrator') ?? false;
+    const clinicContextLabel = isPlatformAdministrator
+        ? 'Platform Administration'
+        : (auth.current_clinic?.name ?? 'No clinic assigned');
 
     const navigationGroups: NavGroup[] = [
+        ...(isPlatformAdministrator
+            ? [
+                  {
+                      title: 'Platform',
+                      items: [
+                          {
+                              title: 'Clinics',
+                              href: PlatformClinicController.index(),
+                              icon: Building2,
+                          },
+                      ],
+                  },
+              ]
+            : []),
         {
             title: 'Overview',
             items: [
@@ -325,14 +341,16 @@ export function AppSidebar() {
                         <SidebarMenuButton size="lg" asChild>
                             <Link
                                 href={
-                                    isPatientPortalUser
-                                        ? PatientPortalController.dashboard()
-                                        : dashboard()
+                                    isPlatformAdministrator
+                                        ? PlatformClinicController.index()
+                                        : isPatientPortalUser
+                                          ? PatientPortalController.dashboard()
+                                          : dashboard()
                                 }
                                 prefetch
                                 data-global-loader="module"
                             >
-                                <AppLogo />
+                                <AppLogo subtitle={clinicContextLabel} />
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

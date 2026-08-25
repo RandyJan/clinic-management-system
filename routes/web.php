@@ -13,22 +13,49 @@ use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientPortalController;
+use App\Http\Controllers\Platform\ClinicController as PlatformClinicController;
+use App\Http\Controllers\Platform\ClinicMembershipController;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\QueueController;
 use App\Http\Controllers\RoleManagementController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\VitalSignController;
+use App\Http\Middleware\EnsurePlatformAdministrator;
+use App\Http\Middleware\EnsureUserIsPatient;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Laravel\Fortify\Features;
 
 Route::get('/', function () {
     if (request()->user() === null) {
-        return redirect()->route('login');
+        return Inertia::render('landing', [
+            'canRegister' => Features::enabled(Features::registration()),
+        ]);
+    }
+
+    if (request()->user()->hasRole('Platform Administrator')) {
+        return redirect()->route('platform.clinics.index');
     }
 
     return redirect()->route('dashboard');
 })->name('home');
+
+Route::middleware(['auth', 'verified', EnsurePlatformAdministrator::class])
+    ->prefix('platform')
+    ->name('platform.')
+    ->group(function () {
+        Route::resource('clinics', PlatformClinicController::class)
+            ->except(['show', 'destroy']);
+        Route::get('clinics/{clinic}/members', [ClinicMembershipController::class, 'index'])
+            ->name('clinics.members.index');
+        Route::post('clinics/{clinic}/members', [ClinicMembershipController::class, 'store'])
+            ->name('clinics.members.store');
+        Route::patch('clinics/{clinic}/members/{membership}', [ClinicMembershipController::class, 'update'])
+            ->name('clinics.members.update');
+        Route::delete('clinics/{clinic}/members/{membership}', [ClinicMembershipController::class, 'destroy'])
+            ->name('clinics.members.destroy');
+    });
 
 Route::get('queue-display', [QueueController::class, 'display'])
     ->name('queues.display');
@@ -99,7 +126,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('can:consultations.view')
         ->name('patients.consultations.index');
 
-    Route::prefix('patient-portal')->name('patient-portal.')->group(function () {
+    Route::prefix('patient-portal')->name('patient-portal.')->middleware(EnsureUserIsPatient::class)->group(function () {
         Route::get('/', [PatientPortalController::class, 'dashboard'])
             ->middleware('can:dashboard.view')
             ->name('dashboard');

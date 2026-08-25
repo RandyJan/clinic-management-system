@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\ClinicMembership;
+use App\Models\User;
 use App\Services\ClinicSettingsService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
@@ -49,12 +51,44 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user,
                 'roles' => $user?->getRoleNames()->values() ?? [],
                 'permissions' => $user?->getAllPermissions()->pluck('name')->values() ?? [],
+                'current_clinic' => fn () => $this->currentClinic($request, $user),
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+        ];
+    }
+
+    /**
+     * @return array{id: int, name: string}|null
+     */
+    private function currentClinic(Request $request, ?User $user): ?array
+    {
+        if ($user === null || $user->hasRole('Platform Administrator')) {
+            return null;
+        }
+
+        $memberships = $user->clinicMemberships()
+            ->where('status', ClinicMembership::STATUS_ACTIVE)
+            ->whereHas('clinic', fn ($query) => $query->where('status', 'active'))
+            ->with('clinic:id,name')
+            ->get();
+
+        $selectedClinicId = $request->session()->get('current_clinic_id');
+        $membership = $memberships->firstWhere('clinic_id', $selectedClinicId)
+            ?? $memberships->first();
+
+        if ($membership === null) {
+            return null;
+        }
+
+        $request->session()->put('current_clinic_id', $membership->clinic_id);
+
+        return [
+            'id' => $membership->clinic->id,
+            'name' => $membership->clinic->name,
         ];
     }
 }

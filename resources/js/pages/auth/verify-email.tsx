@@ -8,13 +8,14 @@ export default function VerifyEmail({ status }: { status?: string }) {
     return (
         <AuthLayout
             title="Verify email"
-            description="Email verification is not required for LDAP authenticated users."
+            description="Verify your email address to continue"
         >
             <Head title="Email verification" />
 
             <div className="space-y-6 text-center">
                 <p className="text-sm text-muted-foreground">
-                    Email verification is disabled for Active Directory users.
+                    Check your inbox and follow the verification link sent to
+                    your email address.
                 </p>
 
                 <TextLink href={logout()} className="mx-auto block text-sm">

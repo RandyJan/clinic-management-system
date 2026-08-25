@@ -26,6 +26,7 @@ class UpdateUserRoleRequest extends FormRequest
             'role' => [
                 'nullable',
                 'string',
+                Rule::notIn(['Platform Administrator']),
                 Rule::exists('roles', 'name')->where('guard_name', 'web'),
             ],
         ];
@@ -40,6 +41,7 @@ class UpdateUserRoleRequest extends FormRequest
     {
         return [
             'role.exists' => 'The selected role does not exist.',
+            'role.not_in' => 'The Platform Administrator role is reserved for platform provisioning.',
         ];
     }
 }

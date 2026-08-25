@@ -5,6 +5,10 @@ export interface Auth {
     user: User;
     roles: string[];
     permissions: string[];
+    current_clinic: {
+        id: number;
+        name: string;
+    } | null;
 }
 
 export interface BreadcrumbItem {

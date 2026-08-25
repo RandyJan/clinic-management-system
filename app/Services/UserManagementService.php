@@ -18,7 +18,13 @@ class UserManagementService
     {
         $query = User::query()
             ->select(['id', 'name', 'email', 'username', 'is_active', 'created_at', 'updated_at'])
-            ->with(['roles:id,name'])
+            ->with([
+                'roles:id,name',
+                'clinicMemberships:id,clinic_id,user_id,role_id,status',
+                'clinicMemberships.clinic:id,name',
+                'clinicMemberships.role:id,name',
+            ])
+            ->whereDoesntHave('roles', fn ($query) => $query->where('name', 'Platform Administrator'))
             ->orderBy('name');
 
         if (! empty($filters['search'])) {
@@ -51,6 +57,15 @@ class UserManagementService
                 'is_current_user' => auth()->id() === $user->id,
                 'role' => $user->roles->first()?->name,
                 'roles' => $user->roles->pluck('name')->values(),
+                'clinics' => $user->clinicMemberships
+                    ->filter(fn ($membership): bool => $membership->clinic !== null)
+                    ->map(fn ($membership): array => [
+                        'id' => $membership->clinic->id,
+                        'name' => $membership->clinic->name,
+                        'role' => $membership->role?->name,
+                        'status' => $membership->status,
+                    ])
+                    ->values(),
                 'created_at' => $user->created_at?->toIso8601String(),
                 'updated_at' => $user->updated_at?->toIso8601String(),
             ]);
@@ -62,6 +77,7 @@ class UserManagementService
     public function roles(): Collection
     {
         return Role::query()
+            ->where('name', '!=', 'Platform Administrator')
             ->orderBy('name')
             ->get(['id', 'name'])
             ->map(fn (Role $role): array => [
@@ -72,6 +88,12 @@ class UserManagementService
 
     public function updateRole(User $user, ?string $roleName, User $actor): void
     {
+        if ($roleName === 'Platform Administrator' || $user->hasRole('Platform Administrator')) {
+            throw ValidationException::withMessages([
+                'role' => 'The Platform Administrator role is reserved for platform provisioning.',
+            ]);
+        }
+
         $oldRoles = $user->roles()->pluck('name')->values()->all();
         $newRoles = $roleName === null ? [] : [$roleName];
 

@@ -92,6 +92,7 @@ class RoleManagementService
         $rolePivotKey = config('permission.column_names.role_pivot_key') ?? 'role_id';
 
         return Role::query()
+            ->where('name', '!=', 'Platform Administrator')
             ->with(['permissions:id,name'])
             ->select("{$rolesTable}.*")
             ->selectSub(
@@ -163,6 +164,8 @@ class RoleManagementService
      */
     public function update(Role $role, array $data, User $actor): Role
     {
+        $this->ensureRoleIsNotPlatformReserved($role);
+
         $oldName = $role->name;
         $oldPermissions = $role->permissions()->pluck('name')->values();
 
@@ -193,6 +196,8 @@ class RoleManagementService
 
     public function delete(Role $role, User $actor): void
     {
+        $this->ensureRoleIsNotPlatformReserved($role);
+
         if ($role->name === 'Administrator') {
             throw ValidationException::withMessages([
                 'role' => 'The Administrator role cannot be deleted.',
@@ -260,5 +265,16 @@ class RoleManagementService
     private function guardName(): string
     {
         return (string) config('auth.defaults.guard', 'web');
+    }
+
+    private function ensureRoleIsNotPlatformReserved(Role $role): void
+    {
+        if ($role->name !== 'Platform Administrator') {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'role' => 'The Platform Administrator role is reserved for platform provisioning.',
+        ]);
     }
 }

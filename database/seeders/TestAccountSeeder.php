@@ -18,6 +18,11 @@ class TestAccountSeeder extends Seeder
      * @var array<string, array{name: string, username: string, email: string}>
      */
     private const ACCOUNTS = [
+        'Platform Administrator' => [
+            'name' => 'Test Platform Administrator',
+            'username' => 'platform-admin',
+            'email' => 'platformadmin@clinic.test',
+        ],
         'Administrator' => [
             'name' => 'Test Administrator',
             'username' => 'admin',

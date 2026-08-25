@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+
 return [
 
     /*
@@ -55,37 +57,15 @@ return [
     | providers to represent the model / table. These providers may then
     | be assigned to any extra authentication guards you have defined.
     |
-    | Supported: "database", "eloquent", "ldap"
+    | Supported: "database", "eloquent"
     |
     */
 
     'providers' => [
         'users' => [
-            'driver' => 'ldap',
-            'model' => App\Ldap\User::class,
-            'rules' => [],
-            'scopes' => [
-                App\Ldap\Scopes\DSWD4A::class,
-            ],
-            'database' => [
-                'model' => App\Models\User::class,
-                'sync_passwords' => true,
-                'sync_attributes' => [
-                    'name' => 'cn',
-                    'email' => 'mail',
-                    'username' => 'samaccountname',
-                ],
-                'sync_existing' => [
-                    'username' => 'samaccountname',
-                ],
-                'password_column' => 'password',
-            ],
+            'driver' => 'eloquent',
+            'model' => User::class,
         ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
     ],
 
     /*

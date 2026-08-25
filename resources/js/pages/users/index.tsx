@@ -51,6 +51,12 @@ type ManagedUser = {
     is_current_user: boolean;
     role: string | null;
     roles: string[];
+    clinics: Array<{
+        id: number;
+        name: string;
+        role: string | null;
+        status: 'active' | 'inactive';
+    }>;
     updated_at: string | null;
 };
 
@@ -148,6 +154,37 @@ const createColumns = (
                 onUpdateRole={onUpdateRole}
             />
         ),
+    },
+    {
+        id: 'clinics',
+        header: 'Assigned clinics',
+        cell: ({ row }) =>
+            row.original.clinics.length > 0 ? (
+                <div className="flex min-w-48 flex-wrap gap-1.5">
+                    {row.original.clinics.map((clinic) => (
+                        <Badge
+                            key={clinic.id}
+                            variant={
+                                clinic.status === 'active'
+                                    ? 'outline'
+                                    : 'secondary'
+                            }
+                            title={
+                                clinic.role
+                                    ? `${clinic.role} (${clinic.status})`
+                                    : clinic.status
+                            }
+                        >
+                            {clinic.name}
+                            {clinic.role ? ` - ${clinic.role}` : ''}
+                        </Badge>
+                    ))}
+                </div>
+            ) : (
+                <span className="text-sm text-muted-foreground">
+                    Not assigned
+                </span>
+            ),
     },
     {
         accessorKey: 'is_active',
@@ -260,7 +297,7 @@ const UsersTableBody = memo(
             ) : (
                 <TableRow>
                     <TableCell
-                        colSpan={6}
+                        colSpan={7}
                         className="h-24 text-center text-muted-foreground"
                     >
                         No users found.
@@ -358,7 +395,7 @@ export default function UsersIndex({
         [search, status],
     );
 
-    // Client-side callbacks for role and status updates
+    // Client-side role update callback
     const handleUpdateRole = useCallback(
         (userId: number, roleName: string | null) => {
             router.patch(
@@ -367,23 +404,6 @@ export default function UsersIndex({
                 {
                     preserveScroll: true,
                     preserveState: false,
-                },
-            );
-        },
-        [],
-    );
-
-    const handleToggleStatus = useCallback(
-        (userId: number, isActive: boolean) => {
-            const action = isActive
-                ? UserManagementController.deactivate(userId)
-                : UserManagementController.activate(userId);
-
-            router.patch(
-                action.url,
-                {},
-                {
-                    preserveScroll: true,
                 },
             );
         },
@@ -487,19 +507,6 @@ export default function UsersIndex({
             </div>
         </AppLayout>
     );
-}
-
-// Role selection component
-interface RoleSelectProps {
-    user: ManagedUser;
-    roles: RoleOption[];
-    onUpdateRole: (userId: number, roleName: string | null) => void;
-}
-
-// Status button component
-interface StatusButtonProps {
-    user: ManagedUser;
-    onToggleStatus: (userId: number, isActive: boolean) => void;
 }
 
 // Utility function

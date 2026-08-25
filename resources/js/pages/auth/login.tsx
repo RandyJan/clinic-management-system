@@ -1,6 +1,5 @@
 import InputError from '@/components/input-error';
 import PrivacyNoticeDialog from '@/components/privacy-notice/privacy-notice-dialog';
-import { Turnstile } from '@/components/turnstile';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -9,6 +8,7 @@ import { PasswordInput } from '@/components/ui/password-input';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
 import { store } from '@/routes/login';
+import { request as passwordRequest } from '@/routes/password';
 import { Form, Head, Link } from '@inertiajs/react';
 import { Info, LockKeyhole, UserRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -17,11 +17,9 @@ interface LoginProps {
     readonly status?: string;
     readonly canResetPassword: boolean;
     readonly canRegister: boolean;
-    readonly turnstileSiteKey: string;
 }
 
-export default function Login({ status, turnstileSiteKey }: LoginProps) {
-    const [turnstileToken, setTurnstileToken] = useState<string>('');
+export default function Login({ status, canResetPassword }: LoginProps) {
     const [privacyAccepted, setPrivacyAccepted] = useState(false);
     const [privacyDialogOpen, setPrivacyDialogOpen] = useState(true);
 
@@ -48,23 +46,22 @@ export default function Login({ status, turnstileSiteKey }: LoginProps) {
                             <div className="grid gap-1">
                                 <p className="font-semibold">Account access</p>
                                 <p className="leading-5 text-sky-800 dark:text-sky-200">
-                                    Use your approved clinic account or Active
-                                    Directory credentials. New local accounts
-                                    require administrator approval before access
-                                    is granted.
+                                    Use your approved clinic account. New
+                                    accounts require administrator approval
+                                    before access is granted.
                                 </p>
                             </div>
                         </div>
 
                         <div className="grid gap-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="samaccountname">Username</Label>
+                                <Label htmlFor="username">Username</Label>
                                 <div className="relative">
                                     <UserRound className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
-                                        id="samaccountname"
+                                        id="username"
                                         type="text"
-                                        name="samaccountname"
+                                        name="username"
                                         required
                                         autoFocus
                                         autoComplete="username"
@@ -72,11 +69,21 @@ export default function Login({ status, turnstileSiteKey }: LoginProps) {
                                         className="h-11 pl-10"
                                     />
                                 </div>
-                                <InputError message={errors.samaccountname} />
+                                <InputError message={errors.username} />
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="password">Password</Label>
+                                <div className="flex items-center justify-between gap-3">
+                                    <Label htmlFor="password">Password</Label>
+                                    {canResetPassword && (
+                                        <Link
+                                            href={passwordRequest()}
+                                            className="text-sm font-medium text-primary underline underline-offset-4"
+                                        >
+                                            Forgot password?
+                                        </Link>
+                                    )}
+                                </div>
                                 <div className="relative">
                                     <LockKeyhole className="pointer-events-none absolute top-1/2 left-3 z-10 size-4 -translate-y-1/2 text-muted-foreground" />
                                     <PasswordInput
@@ -89,21 +96,6 @@ export default function Login({ status, turnstileSiteKey }: LoginProps) {
                                     />
                                 </div>
                                 <InputError message={errors.password} />
-                            </div>
-
-                            <div className="flex flex-col items-center gap-2 rounded-lg border bg-muted/30 p-3">
-                                <Turnstile
-                                    siteKey={turnstileSiteKey}
-                                    onVerify={setTurnstileToken}
-                                />
-                                <input
-                                    type="hidden"
-                                    name="cf-turnstile-response"
-                                    value={turnstileToken}
-                                />
-                                <InputError
-                                    message={errors['cf-turnstile-response']}
-                                />
                             </div>
 
                             <div className="grid gap-3 rounded-lg border p-3">
@@ -159,11 +151,7 @@ export default function Login({ status, turnstileSiteKey }: LoginProps) {
                             <Button
                                 type="submit"
                                 className="h-11 w-full"
-                                disabled={
-                                    processing ||
-                                    !turnstileToken ||
-                                    !privacyAccepted
-                                }
+                                disabled={processing || !privacyAccepted}
                                 data-test="login-button"
                             >
                                 {processing && <Spinner />}

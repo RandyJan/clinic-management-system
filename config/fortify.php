@@ -45,7 +45,7 @@ return [
     |
     */
 
-    'username' => 'samaccountname',
+    'username' => 'username',
 
     'email' => 'email',
 
@@ -145,7 +145,7 @@ return [
 
     'features' => [
         Features::registration(),
-        // Features::resetPasswords(), // Disabled for LDAP authentication - users reset passwords through Active Directory
+        Features::resetPasswords(),
         // Features::emailVerification(),
         Features::twoFactorAuthentication([
             'confirm' => true,

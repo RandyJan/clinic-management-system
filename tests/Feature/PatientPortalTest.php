@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 uses(RefreshDatabase::class);
@@ -65,12 +66,35 @@ test('unlinked users cannot access patient portal records', function () {
         ->assertForbidden();
 });
 
+test('administrators cannot access patient portal modules', function () {
+    $administrator = User::factory()->create(['is_active' => true]);
+    $administratorRole = Role::firstOrCreate([
+        'name' => 'Administrator',
+        'guard_name' => 'web',
+    ]);
+    $portalPermission = Permission::firstOrCreate([
+        'name' => 'appointments.own.view',
+        'guard_name' => 'web',
+    ]);
+
+    $administratorRole->givePermissionTo($portalPermission);
+    $administrator->assignRole($administratorRole);
+
+    $this->actingAs($administrator)
+        ->get(route('patient-portal.appointments'))
+        ->assertForbidden();
+});
+
 /**
  * @param  list<string>  $permissions
  */
 function patientPortalUser(array $permissions): User
 {
     $user = User::factory()->create(['is_active' => true]);
+    $patientRole = Role::firstOrCreate([
+        'name' => 'Patient',
+        'guard_name' => 'web',
+    ]);
 
     foreach ($permissions as $permissionName) {
         Permission::firstOrCreate([
@@ -80,6 +104,7 @@ function patientPortalUser(array $permissions): User
     }
 
     $user->givePermissionTo($permissions);
+    $user->assignRole($patientRole);
 
     return $user;
 }
