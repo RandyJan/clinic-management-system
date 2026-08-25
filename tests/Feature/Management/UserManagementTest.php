@@ -33,6 +33,7 @@ test('user management displays assigned clinics', function () {
     $managedUser = User::factory()->create(['name' => 'Clinic Member']);
     $clinic = Clinic::factory()->create(['name' => 'Clinic A']);
     $clinicRole = Role::create(['name' => 'Doctor', 'guard_name' => 'web']);
+    $administratorRole = Role::create(['name' => 'Administrator', 'guard_name' => 'web']);
 
     ClinicMembership::query()->create([
         'clinic_id' => $clinic->id,
@@ -43,7 +44,7 @@ test('user management displays assigned clinics', function () {
     ClinicMembership::query()->create([
         'clinic_id' => $clinic->id,
         'user_id' => $actor->id,
-        'role_id' => $clinicRole->id,
+        'role_id' => $administratorRole->id,
         'status' => ClinicMembership::STATUS_ACTIVE,
     ]);
 
@@ -103,6 +104,63 @@ test('authorized users can activate and deactivate users', function () {
         ->assertRedirect();
 
     expect($target->fresh()->is_active)->toBeTrue();
+});
+
+test('clinic administrator approval activates the requested clinic membership', function () {
+    $administrator = User::factory()->create();
+    $pendingUser = User::factory()->inactive()->create();
+    $clinic = Clinic::factory()->create();
+    $administratorRole = Role::create(['name' => 'Administrator', 'guard_name' => 'web']);
+    $guestRole = Role::create(['name' => 'Guest', 'guard_name' => 'web']);
+
+    $administrator->givePermissionTo(Permission::firstOrCreate([
+        'name' => 'users.update',
+        'guard_name' => 'web',
+    ]));
+    $administrator->assignRole($administratorRole);
+    $administrator->clinicMemberships()->create([
+        'clinic_id' => $clinic->id,
+        'role_id' => $administratorRole->id,
+        'status' => ClinicMembership::STATUS_ACTIVE,
+    ]);
+    $membership = $pendingUser->clinicMemberships()->create([
+        'clinic_id' => $clinic->id,
+        'role_id' => $guestRole->id,
+        'status' => ClinicMembership::STATUS_PENDING,
+    ]);
+
+    $this->actingAs($administrator)
+        ->patch(route('users.activate', $pendingUser))
+        ->assertRedirect();
+
+    expect($pendingUser->fresh()->is_active)->toBeTrue()
+        ->and($membership->fresh()->status)->toBe(ClinicMembership::STATUS_ACTIVE);
+});
+
+test('super administrator can approve a user from another clinic', function () {
+    $superAdministrator = User::factory()->create();
+    $pendingUser = User::factory()->inactive()->create();
+    $clinic = Clinic::factory()->create();
+    $superRole = Role::create(['name' => 'Super Administrator', 'guard_name' => 'web']);
+    $patientRole = Role::create(['name' => 'Patient', 'guard_name' => 'web']);
+
+    $superAdministrator->assignRole($superRole);
+    $superAdministrator->givePermissionTo(Permission::firstOrCreate([
+        'name' => 'users.update',
+        'guard_name' => 'web',
+    ]));
+    $membership = $pendingUser->clinicMemberships()->create([
+        'clinic_id' => $clinic->id,
+        'role_id' => $patientRole->id,
+        'status' => ClinicMembership::STATUS_PENDING,
+    ]);
+
+    $this->actingAs($superAdministrator)
+        ->patch(route('users.activate', $pendingUser))
+        ->assertRedirect();
+
+    expect($pendingUser->fresh()->is_active)->toBeTrue()
+        ->and($membership->fresh()->status)->toBe(ClinicMembership::STATUS_ACTIVE);
 });
 
 test('users cannot deactivate their own account', function () {

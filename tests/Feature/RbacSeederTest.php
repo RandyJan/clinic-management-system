@@ -33,7 +33,9 @@ test('database seeder creates administrator and guest demo accounts with permiss
     $guestRole = Role::findByName('Guest');
 
     expect($administratorRole->permissions->pluck('name')->sort()->values()->all())->toBe(
-        collect(RoleManagementService::DEFAULT_PERMISSIONS)->sort()->values()->all()
+        collect(RoleManagementService::DEFAULT_PERMISSIONS)
+            ->reject(fn (string $permission) => $permission === 'users.delete')
+            ->sort()->values()->all()
     )->and($guestRole->permissions->pluck('name')->all())->toBe([
         'dashboard.view',
     ]);
@@ -64,6 +66,7 @@ test('test account seeder creates one active account for each role', function ()
     seed(TestAccountSeeder::class);
 
     $accounts = [
+        'super-admin' => 'Super Administrator',
         'admin' => 'Administrator',
         'receptionist' => 'Receptionist',
         'doctor' => 'Doctor',

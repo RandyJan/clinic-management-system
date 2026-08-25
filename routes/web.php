@@ -84,6 +84,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('users/{user}/deactivate', [UserManagementController::class, 'deactivate'])
         ->middleware('can:users.update')
         ->name('users.deactivate');
+    Route::delete('users/{user}', [UserManagementController::class, 'destroy'])
+        ->middleware('can:users.delete')
+        ->name('users.destroy');
 
     Route::get('roles', [RoleManagementController::class, 'index'])
         ->middleware('can:roles.view')

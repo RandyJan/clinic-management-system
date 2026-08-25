@@ -12,8 +12,10 @@ class ClinicMembership extends Pivot
 
     public const STATUS_INACTIVE = 'inactive';
 
+    public const STATUS_PENDING = 'pending';
+
     /** @var list<string> */
-    public const STATUSES = [self::STATUS_ACTIVE, self::STATUS_INACTIVE];
+    public const STATUSES = [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_PENDING];
 
     protected $table = 'clinic_user';
 

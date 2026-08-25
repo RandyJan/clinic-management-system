@@ -1,4 +1,5 @@
 export type ClinicStatus = 'active' | 'inactive';
+export type MembershipStatus = ClinicStatus | 'pending';
 
 export type Clinic = {
     id: number;
@@ -41,7 +42,7 @@ export type ClinicMembership = {
     clinic_id: number;
     user_id: number;
     role_id: number;
-    status: ClinicStatus;
+    status: MembershipStatus;
     user: MembershipUser;
     role: MembershipOption;
 };

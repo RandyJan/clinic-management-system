@@ -11,7 +11,7 @@ import { store } from '@/routes/login';
 import { request as passwordRequest } from '@/routes/password';
 import { Form, Head, Link } from '@inertiajs/react';
 import { Info, LockKeyhole, UserRound } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface LoginProps {
     readonly status?: string;
@@ -21,11 +21,7 @@ interface LoginProps {
 
 export default function Login({ status, canResetPassword }: LoginProps) {
     const [privacyAccepted, setPrivacyAccepted] = useState(false);
-    const [privacyDialogOpen, setPrivacyDialogOpen] = useState(true);
-
-    useEffect(() => {
-        setPrivacyDialogOpen(true);
-    }, []);
+    const [privacyDialogOpen, setPrivacyDialogOpen] = useState(false);
 
     return (
         <AuthLayout

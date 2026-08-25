@@ -29,6 +29,7 @@ import {
     type ClinicMembership,
     type ClinicStatus,
     type MembershipOption,
+    type MembershipStatus,
     type MembershipUser,
 } from './types';
 
@@ -236,7 +237,7 @@ function MembershipRow({
     roles: MembershipOption[];
 }) {
     const [roleId, setRoleId] = useState(membership.role_id.toString());
-    const [status, setStatus] = useState<ClinicStatus>(membership.status);
+    const [status, setStatus] = useState<MembershipStatus>(membership.status);
     const [processing, setProcessing] = useState(false);
 
     function save() {
@@ -302,7 +303,7 @@ function MembershipRow({
                     <Select
                         value={status}
                         onValueChange={(value) =>
-                            setStatus(value as ClinicStatus)
+                            setStatus(value as MembershipStatus)
                         }
                     >
                         <SelectTrigger className="w-32">
@@ -311,6 +312,7 @@ function MembershipRow({
                         <SelectContent>
                             <SelectItem value="active">Active</SelectItem>
                             <SelectItem value="inactive">Inactive</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
                         </SelectContent>
                     </Select>
                     <Badge

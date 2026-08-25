@@ -17,6 +17,7 @@ class RoleManagementService
         'dashboard.view',
         'users.view',
         'users.update',
+        'users.delete',
         'roles.view',
         'roles.create',
         'roles.update',
@@ -92,7 +93,7 @@ class RoleManagementService
         $rolePivotKey = config('permission.column_names.role_pivot_key') ?? 'role_id';
 
         return Role::query()
-            ->where('name', '!=', 'Platform Administrator')
+            ->whereNotIn('name', ['Platform Administrator', 'Super Administrator'])
             ->with(['permissions:id,name'])
             ->select("{$rolesTable}.*")
             ->selectSub(
@@ -269,12 +270,12 @@ class RoleManagementService
 
     private function ensureRoleIsNotPlatformReserved(Role $role): void
     {
-        if ($role->name !== 'Platform Administrator') {
+        if (! in_array($role->name, ['Platform Administrator', 'Super Administrator'], true)) {
             return;
         }
 
         throw ValidationException::withMessages([
-            'role' => 'The Platform Administrator role is reserved for platform provisioning.',
+            'role' => 'This system administrator role is reserved.',
         ]);
     }
 }

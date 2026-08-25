@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DeleteManagedUserRequest;
 use App\Http\Requests\UpdateUserRoleRequest;
 use App\Http\Requests\UpdateUserStatusRequest;
 use App\Http\Requests\UserManagementIndexRequest;
@@ -21,9 +22,10 @@ class UserManagementController extends Controller
         $filters = $request->safe()->only(['search', 'status']);
 
         return Inertia::render('users/index', [
-            'users' => $this->service->list($filters, $perPage),
-            'roles' => $this->service->roles(),
+            'users' => $this->service->list($request->user(), $filters, $perPage),
+            'roles' => $this->service->roles($request->user()),
             'filters' => $filters,
+            'canDeleteUsers' => $request->user()->hasRole('Super Administrator'),
         ]);
     }
 
@@ -35,14 +37,14 @@ class UserManagementController extends Controller
             $request->user()
         );
 
-         return redirect()->route('users.index')->with('success', 'User role updated.');
+        return redirect()->route('users.index')->with('success', 'User role updated.');
     }
 
     public function activate(UpdateUserStatusRequest $request, User $user): RedirectResponse
     {
         $this->service->activate($user, $request->user());
 
-       return redirect()->route('users.index')->with('success', 'User activated.');
+        return redirect()->route('users.index')->with('success', 'User activated.');
     }
 
     public function deactivate(UpdateUserStatusRequest $request, User $user): RedirectResponse
@@ -50,5 +52,12 @@ class UserManagementController extends Controller
         $this->service->deactivate($user, $request->user());
 
         return redirect()->route('users.index')->with('success', 'User deactivated.');
+    }
+
+    public function destroy(DeleteManagedUserRequest $request, User $user): RedirectResponse
+    {
+        $this->service->delete($user, $request->user());
+
+        return back()->with('success', 'User deleted successfully.');
     }
 }

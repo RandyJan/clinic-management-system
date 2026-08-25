@@ -23,6 +23,11 @@ class TestAccountSeeder extends Seeder
             'username' => 'platform-admin',
             'email' => 'platformadmin@clinic.test',
         ],
+        'Super Administrator' => [
+            'name' => 'Test Super Administrator',
+            'username' => 'super-admin',
+            'email' => 'superadmin@clinic.test',
+        ],
         'Administrator' => [
             'name' => 'Test Administrator',
             'username' => 'admin',

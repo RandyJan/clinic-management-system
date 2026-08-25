@@ -6,6 +6,7 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Http\Responses\LoginResponse;
 use App\Http\Responses\PendingApprovalRegisterResponse;
+use App\Models\Clinic;
 use App\Models\User;
 use App\Services\FirstLoginBootstrapService;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -101,7 +102,12 @@ class FortifyServiceProvider extends ServiceProvider
             'status' => $request->session()->get('status'),
         ]));
 
-        Fortify::registerView(fn () => Inertia::render('auth/register'));
+        Fortify::registerView(fn () => Inertia::render('auth/register', [
+            'clinics' => Clinic::query()
+                ->where('status', Clinic::STATUS_ACTIVE)
+                ->orderBy('name')
+                ->get(['id', 'name']),
+        ]));
 
         Fortify::requestPasswordResetLinkView(fn (Request $request) => Inertia::render('auth/forgot-password', [
             'status' => $request->session()->get('status'),

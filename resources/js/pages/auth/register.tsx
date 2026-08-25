@@ -5,27 +5,40 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PasswordInput } from '@/components/ui/password-input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Mail, UserRound } from 'lucide-react';
+import { Building2, Mail, UserRound } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 
 type RegisterForm = {
     name: string;
     username: string;
     email: string;
+    clinic_id: string;
     password: string;
     password_confirmation: string;
 };
 
-export default function Register() {
+export default function Register({
+    clinics,
+}: {
+    clinics: Array<{ id: number; name: string }>;
+}) {
     const [privacyAccepted, setPrivacyAccepted] = useState(false);
     const [privacyDialogOpen, setPrivacyDialogOpen] = useState(false);
     const form = useForm<RegisterForm>({
         name: '',
         username: '',
         email: '',
+        clinic_id: '',
         password: '',
         password_confirmation: '',
     });
@@ -106,6 +119,39 @@ export default function Register() {
                     </div>
 
                     <div className="grid gap-2">
+                        <Label htmlFor="clinic_id">Clinic</Label>
+                        <Select
+                            value={form.data.clinic_id}
+                            onValueChange={(value) =>
+                                form.setData('clinic_id', value)
+                            }
+                            required
+                        >
+                            <SelectTrigger id="clinic_id" className="h-11">
+                                <Building2 className="size-4 text-muted-foreground" />
+                                <SelectValue placeholder="Select your clinic" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {clinics.map((clinic) => (
+                                    <SelectItem
+                                        key={clinic.id}
+                                        value={clinic.id.toString()}
+                                    >
+                                        {clinic.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <InputError message={form.errors.clinic_id} />
+                        {clinics.length === 0 && (
+                            <p className="text-sm text-muted-foreground">
+                                No clinics are currently accepting account
+                                requests.
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="grid gap-2">
                         <Label htmlFor="password">Password</Label>
                         <PasswordInput
                             id="password"
@@ -167,7 +213,11 @@ export default function Register() {
                     <Button
                         type="submit"
                         className="h-11 w-full"
-                        disabled={form.processing || !privacyAccepted}
+                        disabled={
+                            form.processing ||
+                            !privacyAccepted ||
+                            clinics.length === 0
+                        }
                     >
                         {form.processing && <Spinner />}
                         Create account

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ClinicMembership;
 use App\Models\User;
 use App\Notifications\UserRoleChanged;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -14,7 +15,7 @@ class UserManagementService
     /**
      * @param  array{search?: string|null, status?: string|null}  $filters
      */
-    public function list(array $filters = [], int $perPage = 15): LengthAwarePaginator
+    public function list(User $actor, array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $query = User::query()
             ->select(['id', 'name', 'email', 'username', 'is_active', 'created_at', 'updated_at'])
@@ -26,6 +27,11 @@ class UserManagementService
             ])
             ->whereDoesntHave('roles', fn ($query) => $query->where('name', 'Platform Administrator'))
             ->orderBy('name');
+
+        if (! $actor->hasRole('Super Administrator')) {
+            $clinicIds = $this->administeredClinicIds($actor);
+            $query->whereHas('clinicMemberships', fn ($query) => $query->whereIn('clinic_id', $clinicIds));
+        }
 
         if (! empty($filters['search'])) {
             $search = $filters['search'];
@@ -74,10 +80,11 @@ class UserManagementService
     /**
      * @return Collection<int, array{id: int, name: string}>
      */
-    public function roles(): Collection
+    public function roles(User $actor): Collection
     {
         return Role::query()
             ->where('name', '!=', 'Platform Administrator')
+            ->when(! $actor->hasRole('Super Administrator'), fn ($query) => $query->where('name', '!=', 'Super Administrator'))
             ->orderBy('name')
             ->get(['id', 'name'])
             ->map(fn (Role $role): array => [
@@ -88,6 +95,11 @@ class UserManagementService
 
     public function updateRole(User $user, ?string $roleName, User $actor): void
     {
+        $this->ensureCanManage($actor, $user);
+
+        if (($roleName === 'Super Administrator' || $user->hasRole('Super Administrator')) && ! $actor->hasRole('Super Administrator')) {
+            throw ValidationException::withMessages(['role' => 'Only a Super Administrator can manage that role.']);
+        }
         if ($roleName === 'Platform Administrator' || $user->hasRole('Platform Administrator')) {
             throw ValidationException::withMessages([
                 'role' => 'The Platform Administrator role is reserved for platform provisioning.',
@@ -126,8 +138,36 @@ class UserManagementService
 
     public function activate(User $user, User $actor): void
     {
+        $this->ensureCanManage($actor, $user);
         if ($user->is_active) {
             return;
+        }
+
+        $pendingMemberships = $user->clinicMemberships()
+            ->where('status', ClinicMembership::STATUS_PENDING)
+            ->get();
+
+        if ($pendingMemberships->isNotEmpty() && ! $actor->hasAnyRole(['Platform Administrator', 'Super Administrator'])) {
+            $administratorClinicIds = $actor->clinicMemberships()
+                ->where('status', ClinicMembership::STATUS_ACTIVE)
+                ->whereHas('role', fn ($query) => $query->where('name', 'Administrator'))
+                ->pluck('clinic_id');
+
+            $approvedMemberships = $pendingMemberships->whereIn('clinic_id', $administratorClinicIds);
+
+            if ($approvedMemberships->isEmpty()) {
+                throw ValidationException::withMessages([
+                    'user' => 'You can only approve account requests for a clinic you administer.',
+                ]);
+            }
+
+            ClinicMembership::query()
+                ->whereKey($approvedMemberships->pluck('id'))
+                ->update(['status' => ClinicMembership::STATUS_ACTIVE]);
+        } else {
+            $user->clinicMemberships()
+                ->where('status', ClinicMembership::STATUS_PENDING)
+                ->update(['status' => ClinicMembership::STATUS_ACTIVE]);
         }
 
         $user->forceFill(['is_active' => true])->save();
@@ -142,6 +182,7 @@ class UserManagementService
 
     public function deactivate(User $user, User $actor): void
     {
+        $this->ensureCanManage($actor, $user);
         if ($user->is($actor)) {
             throw ValidationException::withMessages([
                 'user' => 'You cannot deactivate your own account.',
@@ -160,5 +201,33 @@ class UserManagementService
             ->withProperties(['is_active' => false])
             ->event('updated')
             ->log('Deactivated user');
+    }
+
+    public function delete(User $user, User $actor): void
+    {
+        abort_unless($actor->hasRole('Super Administrator'), 403);
+        abort_if($user->is($actor) || $user->hasRole('Platform Administrator'), 403);
+
+        $user->delete();
+    }
+
+    private function ensureCanManage(User $actor, User $target): void
+    {
+        if ($actor->hasRole('Super Administrator')) {
+            return;
+        }
+
+        abort_unless(
+            $target->clinicMemberships()->whereIn('clinic_id', $this->administeredClinicIds($actor))->exists(),
+            403
+        );
+    }
+
+    private function administeredClinicIds(User $actor): Collection
+    {
+        return $actor->clinicMemberships()
+            ->where('status', ClinicMembership::STATUS_ACTIVE)
+            ->whereHas('role', fn ($query) => $query->where('name', 'Administrator'))
+            ->pluck('clinic_id');
     }
 }

@@ -25,6 +25,11 @@ class RbacSeeder extends Seeder
             'guard_name' => 'web',
         ]);
 
+        $superAdministratorRole = Role::firstOrCreate([
+            'name' => 'Super Administrator',
+            'guard_name' => 'web',
+        ]);
+
         Role::firstOrCreate([
             'name' => 'Platform Administrator',
             'guard_name' => 'web',
@@ -65,7 +70,10 @@ class RbacSeeder extends Seeder
             'guard_name' => 'web',
         ]);
 
-        $administratorRole->syncPermissions($permissions);
+        $administratorRole->syncPermissions(
+            $permissions->where('name', '!=', 'users.delete')->values()
+        );
+        $superAdministratorRole->syncPermissions($permissions);
         $guestRole->syncPermissions(
             $permissions->where('name', 'dashboard.view')->values()
         );

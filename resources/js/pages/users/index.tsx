@@ -34,7 +34,13 @@ import {
     type ColumnDef,
     type SortingState,
 } from '@tanstack/react-table';
-import { ArrowUpDown, CheckCircle2, Search, XCircle } from 'lucide-react';
+import {
+    ArrowUpDown,
+    CheckCircle2,
+    Search,
+    Trash2,
+    XCircle,
+} from 'lucide-react';
 import { FormEvent, memo, useCallback, useMemo, useState } from 'react';
 
 type RoleOption = {
@@ -55,7 +61,7 @@ type ManagedUser = {
         id: number;
         name: string;
         role: string | null;
-        status: 'active' | 'inactive';
+        status: 'active' | 'inactive' | 'pending';
     }>;
     updated_at: string | null;
 };
@@ -92,6 +98,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const createColumns = (
     roles: RoleOption[],
     onUpdateRole: (userId: number, roleName: string | null) => void,
+    canDeleteUsers: boolean,
 ): ColumnDef<ManagedUser>[] => [
     {
         accessorKey: 'name',
@@ -232,7 +239,7 @@ const createColumns = (
         id: 'actions',
         header: () => <div className="text-right">Actions</div>,
         cell: ({ row }) => (
-            <div className="text-right">
+            <div className="flex justify-end gap-2">
                 {row.original.is_current_user ? (
                     <Button
                         size="sm"
@@ -245,6 +252,26 @@ const createColumns = (
                     </Button>
                 ) : (
                     <StatusDialog user={row.original} />
+                )}
+                {canDeleteUsers && !row.original.is_current_user && (
+                    <Button
+                        size="icon"
+                        variant="destructive"
+                        title="Delete user"
+                        onClick={() => {
+                            if (
+                                window.confirm(`Delete ${row.original.name}?`)
+                            ) {
+                                router.delete(
+                                    UserManagementController.destroy(
+                                        row.original.id,
+                                    ).url,
+                                );
+                            }
+                        }}
+                    >
+                        <Trash2 />
+                    </Button>
                 )}
             </div>
         ),
@@ -365,10 +392,12 @@ export default function UsersIndex({
     users,
     roles,
     filters,
+    canDeleteUsers,
 }: {
     users: PaginatedUsers;
     roles: RoleOption[];
     filters: Filters;
+    canDeleteUsers: boolean;
 }) {
     const [search, setSearch] = useState(filters.search ?? '');
     const [status, setStatus] = useState(filters.status ?? 'all');
@@ -412,8 +441,8 @@ export default function UsersIndex({
 
     // Create columns with memoization
     const columns = useMemo(
-        () => createColumns(roles, handleUpdateRole),
-        [roles, handleUpdateRole],
+        () => createColumns(roles, handleUpdateRole, canDeleteUsers),
+        [roles, handleUpdateRole, canDeleteUsers],
     );
 
     // Table instance
